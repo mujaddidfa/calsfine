@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="description" content="Calsfine - Makanan sehat, praktis, dan lezat. Sandwich wanpaku, samyang roll, dan menu cepat saji sehat lainnya.">
-    <meta name="keywords" content="makanan sehat, cepat saji, sandwich wanpaku, samyang roll, calsfine">
-    <meta name="author" content="Calsfine">
     <title>Calsfine - Makan Sehat, Praktis, dan Lezat</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -27,7 +24,7 @@
         <a href="#tentang" class="hover:text-primary-500">Tentang</a>
         <a href="#cara-pesan" class="hover:text-primary-500">Cara Pesan</a>
         <a href="#produk" class="hover:text-primary-500">Produk</a>
-        <a href="#pesan" class="border border-primary-500 text-primary-500 px-4 py-1 rounded hover:bg-primary-500 hover:text-white transition">
+        <a href="{{ route('order') }}" class="border border-primary-500 text-primary-500 px-4 py-1 rounded hover:bg-primary-500 hover:text-white transition">
           Pesan
         </a>
       </div>
@@ -50,7 +47,7 @@
       <a href="#tentang" class="block text-sm text-gray-800">Tentang</a>
       <a href="#cara-pesan" class="block text-sm text-gray-800">Cara Pesan</a>
       <a href="#produk" class="block text-sm text-gray-800">Produk</a>
-      <a href="#pesan" class="block border border-primary-500 text-primary-500 px-4 py-1 rounded w-fit">Pesan</a>
+      <a href="{{ route('order') }}" class="block border border-primary-500 text-primary-500 px-4 py-1 rounded w-fit">Pesan</a>
     </div>
   </nav>
   
@@ -71,7 +68,7 @@
             Calsfine menyajikan pilihan makanan cepat saji yang sehat dan bergizi seperti sandwich wanpaku, samyang roll, dan tortilla wrap. Cocok untuk kamu yang aktif dan peduli kesehatan.
           </p>
           <div class="flex space-x-4">
-            <a href="#pesan" class="bg-primary-500 text-white px-6 py-2 rounded hover:bg-primary-600 transition">
+            <a href="{{ route('order') }}" class="bg-primary-500 text-white px-6 py-2 rounded hover:bg-primary-600 transition">
               Pesan Sekarang
             </a>
             <a href="#produk" class="border border-primary-500 text-primary-500 px-6 py-2 rounded hover:bg-primary-500 hover:text-white transition">

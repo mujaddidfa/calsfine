@@ -10,6 +10,16 @@ use App\Models\Menu;
 
 class OrderController extends Controller
 {
+    public function index()
+    {
+        // Ambil semua menu yang aktif dengan kategorinya
+        $menus = Menu::where('is_active', 1)
+            ->with('category')
+            ->get();
+
+        return view('order', compact('menus'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
