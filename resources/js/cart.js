@@ -112,9 +112,7 @@ function updateCartDisplay() {
         // Show empty cart message and clear items
         cartItems.innerHTML = `
             <div id="empty-cart" class="text-center py-8 text-gray-500">
-                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 8L6 5H3m4 8v6a2 2 0 002 2h8a2 2 0 002-2v-6"></path>
-                </svg>
+                <img src="/images/shopping-basket.svg" alt="Empty Cart" class="w-16 h-16 mx-auto mb-4 opacity-30">
                 <p>Keranjang masih kosong</p>
                 <p class="text-sm">Tambahkan menu untuk mulai berbelanja</p>
             </div>
