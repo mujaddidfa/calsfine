@@ -260,12 +260,123 @@
                             Batal
                         </button>
                         <button 
-                            type="submit"
+                            type="button"
+                            onclick="showOrderPreview()"
                             class="flex-1 bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition font-medium">
-                            Pesan Sekarang
+                            Pratinjau Pesanan
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Preview Modal -->
+    <div id="order-preview-modal" class="fixed inset-0 bg-neutral-900/25 z-60 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="bg-primary-500 text-white p-4 rounded-t-lg">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold">Pratinjau Pesanan</h2>
+                    <button onclick="closeOrderPreview()" class="text-white hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6">
+                <!-- Customer Information -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-800">Informasi Pelanggan</h3>
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Nama:</span>
+                            <span class="text-sm font-medium" id="preview-customer-name">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">WhatsApp:</span>
+                            <span class="text-sm font-medium" id="preview-customer-phone">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Lokasi Pickup:</span>
+                            <span class="text-sm font-medium" id="preview-pickup-location">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Tanggal Pickup:</span>
+                            <span class="text-sm font-medium" id="preview-pickup-date">-</span>
+                        </div>
+                        <div id="preview-notes-container" class="hidden">
+                            <div class="border-t pt-2 mt-2">
+                                <span class="text-sm text-gray-600">Catatan:</span>
+                                <p class="text-sm font-medium mt-1" id="preview-notes">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-800">Detail Pesanan</h3>
+                    <div id="preview-items" class="space-y-3 mb-4">
+                        <!-- Items akan diisi oleh JavaScript -->
+                    </div>
+                    
+                    <!-- Order Summary -->
+                    <div class="border-t pt-4">
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Total Item:</span>
+                                <span class="font-medium" id="preview-total-items">0</span>
+                            </div>
+                            <div class="flex justify-between text-lg font-bold border-t pt-2">
+                                <span class="text-gray-800">Total Harga:</span>
+                                <span class="text-primary-600">Rp <span id="preview-total-price">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="mb-6">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-yellow-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-yellow-800">Informasi Pembayaran</p>
+                                <p class="text-sm text-yellow-700 mt-1">
+                                    Pembayaran dilakukan saat pickup. Tim kami akan menghubungi Anda melalui WhatsApp untuk konfirmasi pesanan.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <button 
+                        type="button" 
+                        onclick="backToCheckoutForm()"
+                        class="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition font-medium">
+                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Kembali
+                    </button>
+                    <button 
+                        type="button"
+                        onclick="confirmOrder()"
+                        class="flex-1 bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition font-medium">
+                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Konfirmasi Pesanan
+                    </button>
+                </div>
             </div>
         </div>
     </div>
