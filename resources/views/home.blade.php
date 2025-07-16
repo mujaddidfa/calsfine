@@ -149,37 +149,30 @@
   
         <!-- Grid Menu -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-6">
-          <!-- Card 1 -->
+          @forelse($featuredMenus as $menu)
           <div class="bg-white rounded-lg shadow p-4">
-            <img src="{{ asset('images/risol.jpg') }}" alt="Risol" class="w-full h-40 object-cover rounded mb-3">
-            <h3 class="font-semibold text-gray-900 mb-1">Risol</h3>
-            <p class="text-sm text-gray-600 mb-1">Camilan isi sayur dan ayam asap, dibalut kulit renyah. Cocok untuk sarapan atau camilan ringan.</p>
-            <span class="text-sm font-semibold text-primary-500">Rp 2.500</span>
+            @if($menu->photo && $menu->photo !== 'default.jpg' && file_exists(public_path('storage/' . $menu->photo)))
+              <img src="{{ asset('storage/' . $menu->photo) }}" alt="{{ $menu->name }}" class="w-full h-40 object-cover rounded mb-3">
+            @else
+              <div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center">
+                <span class="text-gray-500 text-sm">Foto Produk</span>
+              </div>
+            @endif
+            <h3 class="font-semibold text-gray-900 mb-1">{{ $menu->name }}</h3>
+            <p class="text-sm text-gray-600 mb-1">{{ $menu->description }}</p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-semibold text-primary-500">Rp {{ number_format($menu->price, 0, ',', '.') }}</span>
+              @if($menu->category)
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{{ $menu->category->name }}</span>
+              @endif
+            </div>
           </div>
-  
-          <!-- Card 2 -->
-          <div class="bg-white rounded-lg shadow p-4">
-            <img src="{{ asset('images/wanpaku.jpg') }}" alt="Sandwich Wanpaku" class="w-full h-40 object-cover rounded mb-3">
-            <h3 class="font-semibold text-gray-900 mb-1">Sandwich Wanpaku</h3>
-            <p class="text-sm text-gray-600 mb-1">Roti lapis ala Jepang, dengan isian ayam dan sayur segar. Padat dan cocok untuk bekal sehat.</p>
-            <span class="text-sm font-semibold text-primary-500">Rp 2.500</span>
+          @empty
+          <!-- Fallback jika tidak ada data -->
+          <div class="col-span-full text-center py-8">
+            <p class="text-gray-500">Belum ada produk tersedia</p>
           </div>
-  
-          <!-- Card 3 -->
-          <div class="bg-white rounded-lg shadow p-4 relative">
-            <img src="{{ asset('images/samyang-roll.jpg') }}" alt="Samyang Roll" class="w-full h-40 object-cover rounded mb-3">
-            <h3 class="font-semibold text-gray-900 mb-1">Samyang Roll</h3>
-            <p class="text-sm text-gray-600 mb-1">Kreasi unik mie Korea pedas dibalut nori dan nasi. Pedas khas Asia Timur.</p>
-            <span class="text-sm font-semibold text-primary-500">Rp 2.500</span>
-          </div>
-  
-          <!-- Card 4 -->
-          <div class="bg-white rounded-lg shadow p-4">
-            <img src="{{ asset('images/musubi.jpg') }}" alt="Musubi" class="w-full h-40 object-cover rounded mb-3">
-            <h3 class="font-semibold text-gray-900 mb-1">Musubi</h3>
-            <p class="text-sm text-gray-600 mb-1">Nasi kepal isi daging, dibalut nori. Lezat, praktis, dan mengenyangkan.</p>
-            <span class="text-sm font-semibold text-primary-500">Rp 2.500</span>
-          </div>
+          @endforelse
         </div>
   
         <!-- Link ke Semua Menu -->
