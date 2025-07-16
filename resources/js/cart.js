@@ -167,26 +167,8 @@ export function checkout() {
         return;
     }
 
-    const total = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-    );
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-    alert(
-        `Checkout berhasil!\n\nTotal Item: ${totalItems}\nTotal Harga: Rp ${total.toLocaleString(
-            "id-ID"
-        )}\n\nTerima kasih telah berbelanja di CalsFine!`
-    );
-
-    // Reset cart
-    cart = [];
-    updateCartDisplay();
-
-    // Close cart after checkout
-    if (isCartOpen) {
-        toggleCart();
-    }
+    // Show checkout modal
+    showCheckoutModal();
 }
 
 // Initialize cart when DOM is loaded
@@ -197,6 +179,9 @@ document.addEventListener("DOMContentLoaded", function () {
     window.removeFromCart = removeFromCart;
     window.toggleCart = toggleCart;
     window.checkout = checkout;
+    window.showCheckoutModal = showCheckoutModal;
+    window.closeCheckoutModal = closeCheckoutModal;
+    window.submitOrder = submitOrder;
 
     // Initialize cart display
     updateCartDisplay();
@@ -205,4 +190,195 @@ document.addEventListener("DOMContentLoaded", function () {
     document
         .getElementById("cart-toggle")
         .addEventListener("click", toggleCart);
+
+    // Set automatic pickup date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const pickupDateInput = document.getElementById("pickup-date");
+    if (pickupDateInput) {
+        // Set the hidden input value to tomorrow
+        pickupDateInput.value = tomorrow.toISOString().split("T")[0];
+
+        // Update the display text with formatted date
+        const pickupDateDisplay = document.getElementById(
+            "pickup-date-display"
+        );
+        if (pickupDateDisplay) {
+            const options = {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            };
+            const formattedDate = tomorrow.toLocaleDateString("id-ID", options);
+            pickupDateDisplay.textContent = formattedDate;
+        }
+    }
+
+    // Load locations for dropdown
+    loadLocations();
+
+    // Handle checkout form submission
+    const checkoutForm = document.getElementById("checkout-form");
+    if (checkoutForm) {
+        checkoutForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            submitOrder();
+        });
+    }
 });
+
+// Checkout Modal Functions
+function showCheckoutModal() {
+    const modal = document.getElementById("checkout-modal");
+    const checkoutItems = document.getElementById("checkout-items");
+    const checkoutTotal = document.getElementById("checkout-modal-total");
+
+    // Show modal with flex display
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    // Setup pickup date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const pickupDateInput = document.getElementById("pickup-date");
+    if (pickupDateInput) {
+        // Set the hidden input value to tomorrow
+        pickupDateInput.value = tomorrow.toISOString().split("T")[0];
+
+        // Update the display text with formatted date
+        const pickupDateDisplay = document.getElementById(
+            "pickup-date-display"
+        );
+        if (pickupDateDisplay) {
+            const options = {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            };
+            const formattedDate = tomorrow.toLocaleDateString("id-ID", options);
+            pickupDateDisplay.textContent = formattedDate;
+        }
+    }
+
+    // Populate order summary
+    const total = cart.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+    );
+    checkoutTotal.textContent = total.toLocaleString("id-ID");
+
+    // Populate items
+    checkoutItems.innerHTML = cart
+        .map(
+            (item) => `
+        <div class="flex justify-between items-center text-sm">
+            <span>${item.name} x${item.quantity}</span>
+            <span>Rp ${(item.price * item.quantity).toLocaleString(
+                "id-ID"
+            )}</span>
+        </div>
+    `
+        )
+        .join("");
+}
+
+function closeCheckoutModal() {
+    const modal = document.getElementById("checkout-modal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
+// Load locations from API
+async function loadLocations() {
+    try {
+        const response = await fetch("/api/locations");
+        const data = await response.json();
+
+        const locationSelect = document.getElementById("pickup-location");
+        if (locationSelect && data.status === "success") {
+            locationSelect.innerHTML =
+                '<option value="">Pilih lokasi pickup...</option>';
+            data.data.forEach((location) => {
+                locationSelect.innerHTML += `<option value="${location.id}">${location.name}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error("Error loading locations:", error);
+    }
+}
+
+// Submit order to backend
+async function submitOrder() {
+    const form = document.getElementById("checkout-form");
+    const formData = new FormData(form);
+
+    // Validate form
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    // Prepare order data
+    const orderData = {
+        customer_name: formData.get("customer_name"),
+        wa_number: formData.get("wa_number"),
+        id_location: formData.get("id_location"),
+        pick_up_date: formData.get("pick_up_date"),
+        note: formData.get("note") || "",
+        items: cart.map((item) => ({
+            id_menu: item.id,
+            qty: item.quantity,
+        })),
+    };
+
+    try {
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = "Memproses...";
+        submitBtn.disabled = true;
+
+        const response = await fetch("/api/order", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN":
+                    document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content") || "",
+            },
+            body: JSON.stringify(orderData),
+        });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+            // Success - show confirmation
+            alert(
+                `Pesanan berhasil dibuat!\n\nNomor Pesanan: #${result.transaction_id}\n\nTerima kasih telah berbelanja di CalsFine!\nAnda akan dihubungi melalui WhatsApp untuk konfirmasi.`
+            );
+
+            // Clear cart and close modal
+            cart = [];
+            updateCartDisplay();
+            closeCheckoutModal();
+
+            // Close cart if open
+            if (isCartOpen) {
+                toggleCart();
+            }
+        } else {
+            throw new Error(result.message || "Terjadi kesalahan");
+        }
+    } catch (error) {
+        console.error("Order submission error:", error);
+        alert("Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.");
+    } finally {
+        // Reset button state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}

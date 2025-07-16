@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Calsfine - Makan Sehat, Praktis, dan Lezat</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -148,5 +149,125 @@
 
     <!-- Overlay -->
     <div id="cart-overlay" class="fixed inset-0 bg-neutral-900/25 z-30 hidden" onclick="toggleCart()"></div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 bg-neutral-900/25 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="bg-primary-500 text-white p-4 rounded-t-lg">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold">Checkout</h2>
+                    <button onclick="closeCheckoutModal()" class="text-white hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6">
+                <!-- Order Summary -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Ringkasan Pesanan</h3>
+                    <div id="checkout-items" class="space-y-2 mb-4">
+                        <!-- Items akan diisi oleh JavaScript -->
+                    </div>
+                    <div class="border-t pt-3">
+                        <div class="flex justify-between items-center text-lg font-bold">
+                            <span>Total</span>
+                            <span class="text-primary-600">Rp <span id="checkout-modal-total">0</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Form -->
+                <form id="checkout-form" class="space-y-4">
+                    <div>
+                        <label for="customer-name" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nama Lengkap <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="customer-name" 
+                            name="customer_name"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            placeholder="Masukkan nama lengkap Anda"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="customer-phone" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nomor WhatsApp <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="customer-phone" 
+                            name="wa_number"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            placeholder="08xxxxxxxxxx"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="pickup-location" class="block text-sm font-medium text-gray-700 mb-1">
+                            Lokasi Pickup <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="pickup-location" 
+                            name="id_location"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            required>
+                            <option value="">Pilih lokasi pickup...</option>
+                            <!-- Options akan diisi oleh JavaScript atau dari backend -->
+                        </select>
+                    </div>
+
+                    <!-- Hidden pickup date field (automatically set to tomorrow) -->
+                    <input type="hidden" id="pickup-date" name="pick_up_date">
+
+                    <!-- Pickup date info for user -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-blue-800">Tanggal Pickup</p>
+                                <p class="text-sm text-blue-600" id="pickup-date-display">Besok</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="order-notes" class="block text-sm font-medium text-gray-700 mb-1">
+                            Catatan Pesanan
+                        </label>
+                        <textarea 
+                            id="order-notes" 
+                            name="note"
+                            rows="3"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            placeholder="Catatan khusus untuk pesanan Anda (opsional)"></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button 
+                            type="button" 
+                            onclick="closeCheckoutModal()"
+                            class="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition font-medium">
+                            Batal
+                        </button>
+                        <button 
+                            type="submit"
+                            class="flex-1 bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition font-medium">
+                            Pesan Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
