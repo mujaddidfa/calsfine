@@ -12,8 +12,8 @@ class Transaction extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'customer_name', 'email', 'wa_number', 'note',
-        'order_date', 'pick_up_date', 'id_location',
+        'customer_name', 'wa_number', 'note',
+        'order_date', 'pick_up_date', 'location_id',
         'total_price', 'status', 'payment_date',
         'qris_reference', 'qris_expiry'
     ];
@@ -27,11 +27,11 @@ class Transaction extends Model
 
     public function items()
     {
-        return $this->hasMany(TransactionItem::class, 'id_transaction');
+        return $this->hasMany(TransactionItem::class, 'transaction_id');
     }
 
     public function location()
     {
-        return $this->belongsTo(Location::class, 'id_location');
+        return $this->belongsTo(Location::class, 'location_id');
     }
 }

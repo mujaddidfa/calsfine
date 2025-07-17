@@ -18,7 +18,7 @@ return new class extends Migration
                 $table->double('price');
                 $table->integer('stock');
                 $table->text('description')->nullable();
-                $table->foreignId('id_category')->nullable()->constrained('categories')->cascadeOnUpdate();
+                $table->foreignId('category_id')->nullable()->constrained('categories')->cascadeOnUpdate();
                 $table->string('photo')->nullable();
                 $table->boolean('is_active')->default(1);
                 $table->timestamps();

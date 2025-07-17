@@ -5,20 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - CalsFine</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gradient-to-br from-orange-50 to-orange-100 min-h-screen flex items-center justify-center font-['Inter']">
+<body class="bg-gradient-to-br from-primary-50 to-primary-100 min-h-screen flex items-center justify-center font-['Poppins']">
     
     <!-- Login Container -->
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
         
         <!-- Header Section -->
-        <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6 text-center">
-            <div class="flex justify-center mb-4">
-                <img src="{{ asset('images/logo.png') }}" alt="CalsFine Logo" class="h-12 w-auto">
-            </div>
+        <div class="bg-gradient-to-r from-primary-500 to-primary-600 px-8 py-6 text-center">
             <h1 class="text-white text-2xl font-bold">Admin Panel</h1>
-            <p class="text-orange-100 text-sm mt-1">Masuk ke Dashboard Admin</p>
+            <p class="text-primary-100 text-sm mt-1">Masuk ke Dashboard Admin CalsFine</p>
         </div>
 
         <!-- Login Form -->
@@ -31,22 +28,6 @@
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
                     </svg>
                     <span>{{ session('error') }}</span>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-                    <div class="flex items-center mb-2">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="font-medium">Terdapat kesalahan:</span>
-                    </div>
-                    <ul class="list-disc list-inside text-sm">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
                 </div>
             @endif
 
@@ -70,7 +51,7 @@
                             id="username" 
                             name="username" 
                             value="{{ old('username') }}"
-                            class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 @error('username') border-red-500 @enderror" 
+                            class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 @error('username') border-red-500 @enderror" 
                             placeholder="Masukkan username"
                             required
                             autocomplete="username"
@@ -96,7 +77,7 @@
                             type="password" 
                             id="password" 
                             name="password" 
-                            class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 @error('password') border-red-500 @enderror" 
+                            class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 @error('password') border-red-500 @enderror" 
                             placeholder="Masukkan password"
                             required
                             autocomplete="current-password"
@@ -123,26 +104,16 @@
                 <!-- Submit Button -->
                 <button 
                     type="submit" 
-                    class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 focus:ring-4 focus:ring-orange-200 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                    class="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 focus:ring-4 focus:ring-primary-200 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                     <div class="flex items-center justify-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                         </svg>
-                        Masuk ke Dashboard
+                        Login
                     </div>
                 </button>
             </form>
-
-            <!-- Footer Links -->
-            <div class="mt-8 text-center">
-                <a href="{{ route('home') }}" class="text-sm text-gray-600 hover:text-orange-600 transition-colors duration-200 flex items-center justify-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Kembali ke Beranda
-                </a>
-            </div>
         </div>
     </div>
 

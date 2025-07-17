@@ -10,17 +10,17 @@ class TransactionItem extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'id_transaction', 'id_menu', 'qty',
+        'transaction_id', 'menu_id', 'qty',
         'price_per_item', 'total_price'
     ];
 
     public function menu()
     {
-        return $this->belongsTo(Menu::class, 'id_menu');
+        return $this->belongsTo(Menu::class, 'menu_id');
     }
 
     public function transaction()
     {
-        return $this->belongsTo(Transaction::class, 'id_transaction');
+        return $this->belongsTo(Transaction::class, 'transaction_id');
     }
 }

@@ -13,11 +13,21 @@ class Menu extends Model
 
     protected $fillable = [
         'name', 'price', 'stock', 'description',
-        'id_category', 'photo', 'is_active'
+        'category_id', 'image', 'is_active'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'price' => 'decimal:2'
     ];
 
     public function category()
     {
-        return $this->belongsTo(Category::class, 'id_category');
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function transactionItems()
+    {
+        return $this->hasMany(TransactionItem::class);
     }
 }

@@ -14,8 +14,8 @@ return new class extends Migration
         if (!Schema::hasTable('transaction_items')) {
             Schema::create('transaction_items', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('id_transaction')->nullable()->constrained('transactions')->cascadeOnUpdate()->cascadeOnDelete();
-                $table->foreignId('id_menu')->nullable()->constrained('menus')->cascadeOnUpdate();
+                $table->foreignId('transaction_id')->nullable()->constrained('transactions')->cascadeOnUpdate()->cascadeOnDelete();
+                $table->foreignId('menu_id')->nullable()->constrained('menus')->cascadeOnUpdate();
                 $table->integer('qty');
                 $table->double('price_per_item');
                 $table->double('total_price');

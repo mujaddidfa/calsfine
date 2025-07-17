@@ -15,12 +15,11 @@ return new class extends Migration
             Schema::create('transactions', function (Blueprint $table) {
                 $table->id();
                 $table->string('customer_name', 100);
-                $table->string('email', 50)->nullable();
                 $table->string('wa_number', 20);
                 $table->text('note')->nullable();
                 $table->dateTime('order_date');
                 $table->dateTime('pick_up_date');
-                $table->foreignId('id_location')->nullable()->constrained('locations')->cascadeOnUpdate()->nullOnDelete();
+                $table->foreignId('location_id')->nullable()->constrained('locations')->cascadeOnUpdate()->nullOnDelete();
                 $table->double('total_price');
                 $table->enum('status', ['pending', 'paid', 'completed', 'cancelled'])->default('pending');
                 $table->dateTime('payment_date')->nullable();

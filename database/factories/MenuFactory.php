@@ -23,7 +23,7 @@ class MenuFactory extends Factory
             'price' => $this->faker->randomFloat(0, 10000, 50000),
             'stock' => $this->faker->numberBetween(0, 100),
             'description' => $this->faker->sentence(),
-            'id_category' => function () {
+            'category_id' => function () {
                 return Category::inRandomOrder()->first()->id;
             },
             'photo' => 'default.jpg',

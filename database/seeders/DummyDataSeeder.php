@@ -20,7 +20,7 @@ class DummyDataSeeder extends Seeder
 
         Menu::factory(5)->state(function () {
             return [
-                'id_category' => Category::inRandomOrder()->first()->id,
+                'category_id' => Category::inRandomOrder()->first()->id,
             ];
         })->create();
 
