@@ -14,9 +14,19 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('admins')->insert([
-            'username' => 'admin',
-            'password' => Hash::make('admin123'),
-        ]);
+        // Use updateOrInsert to avoid duplicate entries
+        DB::table('admins')->updateOrInsert(
+            ['username' => 'admin'],
+            [
+                'username' => 'admin',
+                'password' => Hash::make('CalsFine2025!'), // Strong password
+            ]
+        );
+        
+        // Verify admin exists with ID
+        $admin = DB::table('admins')->where('username', 'admin')->first();
+        if ($admin) {
+            echo "Admin created with ID: " . $admin->id . "\n";
+        }
     }
 }
