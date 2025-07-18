@@ -6,6 +6,23 @@
     <title>Analytics - CalsFine Admin</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom dropdown styling */
+        .dropdown-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25rem 1.25rem;
+        }
+        
+        .dropdown-select:hover {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234b5563' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        }
+        
+        .dropdown-select:focus {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        }
+    </style>
 </head>
 <body class="bg-gray-50 font-['Poppins']">
     @include('admin.partials.navbar')
@@ -19,17 +36,23 @@
                     <h1 class="text-3xl font-bold text-gray-900">History & Analytics Penjualan</h1>
                     <p class="text-gray-600 mt-1">Tracking penjualan dan analisa performa bisnis CalsFine</p>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <select id="period-filter" onchange="filterPeriod()" class="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm">
-                        <option value="daily">Harian</option>
-                        <option value="weekly">Mingguan</option>
-                        <option value="monthly">Bulanan</option>
-                        <option value="yearly">Tahunan</option>
-                    </select>
-                    <input type="date" id="date-filter" onchange="filterDate()" class="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm" value="{{ now()->format('Y-m-d') }}">
-                    <button onclick="exportData()" class="text-green-600 hover:text-green-700 font-medium text-sm bg-green-50 px-4 py-2 rounded-md border border-green-200">
-                        Export Excel
-                    </button>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-xs font-medium text-gray-700 mb-1">Periode</label>
+                        <select id="period-filter" onchange="filterPeriod()" class="dropdown-select appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer">
+                            <option value="daily">Harian</option>
+                            <option value="weekly">Mingguan</option>
+                            <option value="monthly">Bulanan</option>
+                            <option value="yearly">Tahunan</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-xs font-medium text-gray-700 mb-1">Urutkan</label>
+                        <select id="sort-filter" onchange="sortData()" class="dropdown-select appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer">
+                            <option value="newest">Terbaru</option>
+                            <option value="oldest">Terlama</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -107,9 +130,9 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Pesanan</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Rate</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diambil</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tidak Diambil</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Top Menu</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200" id="analytics-tbody">
@@ -151,17 +174,35 @@
 
     <script>
         // Analytics functions
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentData = [];
+        let originalData = []; // Store original data order from API
+        const itemsPerPage = 10;
+
         function filterPeriod() {
+            currentPage = 1; // Reset to first page when filter changes
             loadAnalyticsData();
         }
 
-        function filterDate() {
-            loadAnalyticsData();
+        function sortData() {
+            const sortOrder = document.getElementById('sort-filter').value;
+            currentPage = 1; // Reset to first page when sorting
+            
+            // Sort the current data based on selected order
+            if (sortOrder === 'newest') {
+                currentData = [...originalData]; // Use original order (newest first from API)
+            } else {
+                currentData = [...originalData].reverse(); // Reverse for oldest first
+            }
+            
+            totalPages = Math.ceil(currentData.length / itemsPerPage);
+            displayAnalyticsData();
+            updatePaginationInfo();
         }
 
         function loadAnalyticsData() {
             const period = document.getElementById('period-filter').value;
-            const date = document.getElementById('date-filter').value;
             
             // Show loading state
             document.getElementById('analytics-tbody').innerHTML = `
@@ -179,12 +220,24 @@
             `;
 
             // Make AJAX call to get real data
-            fetch(`{{ route('admin.history.data') }}?period=${period}&date=${date}`)
+            fetch(`{{ route('admin.history.data') }}?period=${period}`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Received data:', data); // Debug log
                     if (data.success) {
-                        displayAnalyticsData(data.data);
+                        originalData = data.data; // Store original order from API
+                        currentData = [...originalData]; // Initialize current data with original order
+                        
+                        // Apply current sort order
+                        const sortOrder = document.getElementById('sort-filter').value;
+                        if (sortOrder === 'oldest') {
+                            currentData = [...originalData].reverse();
+                        }
+                        
+                        totalPages = Math.ceil(currentData.length / itemsPerPage);
+                        displayAnalyticsData();
                         updateSummaryCardsFromAPI(data.summary);
+                        updatePaginationInfo();
                     } else {
                         throw new Error('Failed to load data');
                     }
@@ -207,10 +260,10 @@
                 });
         }
 
-        function displayAnalyticsData(data) {
+        function displayAnalyticsData() {
             const tbody = document.getElementById('analytics-tbody');
             
-            if (data.length === 0) {
+            if (currentData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" class="px-6 py-12 text-center text-gray-500">
@@ -227,53 +280,80 @@
                 return;
             }
 
-            tbody.innerHTML = data.map(item => `
+            // Calculate start and end index for current page
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = currentData.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map(item => `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.date}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.orders} pesanan</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">Rp ${item.revenue.toLocaleString('id-ID')}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="w-16 bg-gray-200 rounded-full h-2 mr-3">
-                                <div class="bg-green-600 h-2 rounded-full" style="width: ${item.pickup_rate}%"></div>
-                            </div>
-                            <span class="text-sm text-gray-900">${item.pickup_rate}%</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.top_menu}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                            ${item.status === 'success' ? 'Baik' : 'Perlu Perhatian'}
-                        </span>
-                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.date || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.orders || 0} pesanan</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">Rp ${(item.revenue || 0).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">${item.completed_orders || 0}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">${item.cancelled_orders || 0}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.top_menu || '-'}</td>
                 </tr>
             `).join('');
         }
 
         function updateSummaryCardsFromAPI(summary) {
-            document.getElementById('total-orders').textContent = summary.total_orders;
-            document.getElementById('total-revenue').textContent = `Rp ${summary.total_revenue.toLocaleString('id-ID')}`;
-            document.getElementById('avg-daily').textContent = `Rp ${Math.floor(summary.total_revenue / 7).toLocaleString('id-ID')}`;
-            document.getElementById('success-rate').textContent = `${Math.round(summary.avg_pickup_rate)}%`;
+            console.log('Summary data:', summary); // Debug log
+            document.getElementById('total-orders').textContent = summary?.total_orders || 0;
+            document.getElementById('total-revenue').textContent = `Rp ${(summary?.total_revenue || 0).toLocaleString('id-ID')}`;
+            document.getElementById('avg-daily').textContent = `Rp ${Math.floor((summary?.total_revenue || 0) / 7).toLocaleString('id-ID')}`;
+            document.getElementById('success-rate').textContent = `${Math.round(summary?.avg_pickup_rate || 0)}%`;
         }
 
-        function exportData() {
-            const period = document.getElementById('period-filter').value;
-            const date = document.getElementById('date-filter').value;
+        function updatePaginationInfo() {
+            const showingInfo = document.getElementById('showing-info');
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, currentData.length);
             
-            // Create download link for export
-            const exportUrl = `{{ route('admin.history.data') }}?period=${period}&date=${date}&export=excel`;
-            window.open(exportUrl, '_blank');
+            if (currentData.length === 0) {
+                showingInfo.textContent = 'Tidak ada data untuk ditampilkan';
+            } else {
+                showingInfo.textContent = `Menampilkan ${startItem}-${endItem} dari ${currentData.length} data`;
+            }
+            
+            // Update pagination controls
+            const paginationControls = document.querySelector('#pagination-controls span');
+            paginationControls.textContent = `Page ${currentPage} of ${totalPages}`;
+            
+            // Update button states
+            const prevButton = document.querySelector('#pagination-controls button:first-child');
+            const nextButton = document.querySelector('#pagination-controls button:last-child');
+            
+            prevButton.disabled = currentPage <= 1;
+            nextButton.disabled = currentPage >= totalPages;
+            
+            if (prevButton.disabled) {
+                prevButton.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                prevButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            if (nextButton.disabled) {
+                nextButton.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
         }
 
         function previousPage() {
-            // Implement pagination
-            console.log('Previous page');
+            if (currentPage > 1) {
+                currentPage--;
+                displayAnalyticsData();
+                updatePaginationInfo();
+            }
         }
 
         function nextPage() {
-            // Implement pagination  
-            console.log('Next page');
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayAnalyticsData();
+                updatePaginationInfo();
+            }
         }
 
         // Load initial analytics data when page loads

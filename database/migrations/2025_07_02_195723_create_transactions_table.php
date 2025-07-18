@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->dateTime('pick_up_date');
                 $table->foreignId('location_id')->nullable()->constrained('locations')->cascadeOnUpdate()->nullOnDelete();
                 $table->double('total_price');
-                $table->enum('status', ['pending', 'paid', 'completed', 'cancelled'])->default('pending');
+                $table->enum('status', ['pending', 'paid', 'completed', 'cancelled', 'wasted'])->default('pending');
                 $table->dateTime('payment_date')->nullable();
                 $table->string('qris_reference')->nullable();
                 $table->dateTime('qris_expiry')->nullable();

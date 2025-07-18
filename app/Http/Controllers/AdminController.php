@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Menu;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -86,30 +87,34 @@ class AdminController extends Controller
     public function getHistoryData(Request $request)
     {
         $period = $request->get('period', 'daily');
-        $date = $request->get('date', now()->format('Y-m-d'));
+        
+        // Debug: Check total transactions in database
+        $totalTransactions = Transaction::count();
+        Log::info("Total transactions in database: {$totalTransactions}");
         
         $data = [];
         
         switch ($period) {
             case 'daily':
-                // Last 7 days
-                for ($i = 6; $i >= 0; $i--) {
+                // Last 30 days untuk memberikan data yang lebih banyak (terbaru ke lama)
+                for ($i = 0; $i < 30; $i++) {
                     $currentDate = now()->subDays($i)->format('Y-m-d');
                     $dayData = $this->getDayStats($currentDate);
                     $data[] = [
                         'date' => now()->subDays($i)->format('d/m/Y'),
                         'orders' => $dayData['orders'],
                         'revenue' => $dayData['revenue'],
+                        'completed_orders' => $dayData['completed_orders'], // Kolom "Diambil"
+                        'cancelled_orders' => $dayData['cancelled_orders'], // Kolom "Tidak Diambil"
                         'pickup_rate' => $dayData['pickup_rate'],
-                        'top_menu' => $dayData['top_menu'],
-                        'status' => $dayData['pickup_rate'] >= 80 ? 'success' : 'warning'
+                        'top_menu' => $dayData['top_menu']
                     ];
                 }
                 break;
                 
             case 'weekly':
-                // Last 4 weeks
-                for ($i = 3; $i >= 0; $i--) {
+                // Last 12 weeks (3 bulan) untuk memberikan data yang lebih banyak (terbaru ke lama)
+                for ($i = 0; $i < 12; $i++) {
                     $startWeek = now()->subWeeks($i)->startOfWeek();
                     $endWeek = now()->subWeeks($i)->endOfWeek();
                     $weekData = $this->getWeekStats($startWeek, $endWeek);
@@ -117,41 +122,44 @@ class AdminController extends Controller
                         'date' => $startWeek->format('d/m') . ' - ' . $endWeek->format('d/m/Y'),
                         'orders' => $weekData['orders'],
                         'revenue' => $weekData['revenue'],
+                        'completed_orders' => $weekData['completed_orders'], // Kolom "Diambil"
+                        'cancelled_orders' => $weekData['cancelled_orders'], // Kolom "Tidak Diambil"
                         'pickup_rate' => $weekData['pickup_rate'],
-                        'top_menu' => $weekData['top_menu'],
-                        'status' => $weekData['pickup_rate'] >= 80 ? 'success' : 'warning'
+                        'top_menu' => $weekData['top_menu']
                     ];
                 }
                 break;
                 
             case 'monthly':
-                // Last 6 months
-                for ($i = 5; $i >= 0; $i--) {
+                // Last 12 months (1 tahun) untuk memberikan data yang lebih banyak (terbaru ke lama)
+                for ($i = 0; $i < 12; $i++) {
                     $currentMonth = now()->subMonths($i);
                     $monthData = $this->getMonthStats($currentMonth);
                     $data[] = [
                         'date' => $currentMonth->format('F Y'),
                         'orders' => $monthData['orders'],
                         'revenue' => $monthData['revenue'],
+                        'completed_orders' => $monthData['completed_orders'], // Kolom "Diambil"
+                        'cancelled_orders' => $monthData['cancelled_orders'], // Kolom "Tidak Diambil"
                         'pickup_rate' => $monthData['pickup_rate'],
-                        'top_menu' => $monthData['top_menu'],
-                        'status' => $monthData['pickup_rate'] >= 80 ? 'success' : 'warning'
+                        'top_menu' => $monthData['top_menu']
                     ];
                 }
                 break;
                 
             case 'yearly':
-                // Last 3 years
-                for ($i = 2; $i >= 0; $i--) {
+                // Last 5 years untuk memberikan data yang lebih banyak (terbaru ke lama)
+                for ($i = 0; $i < 5; $i++) {
                     $currentYear = now()->subYears($i);
                     $yearData = $this->getYearStats($currentYear);
                     $data[] = [
                         'date' => $currentYear->format('Y'),
                         'orders' => $yearData['orders'],
                         'revenue' => $yearData['revenue'],
+                        'completed_orders' => $yearData['completed_orders'], // Kolom "Diambil"
+                        'cancelled_orders' => $yearData['cancelled_orders'], // Kolom "Tidak Diambil"
                         'pickup_rate' => $yearData['pickup_rate'],
-                        'top_menu' => $yearData['top_menu'],
-                        'status' => $yearData['pickup_rate'] >= 80 ? 'success' : 'warning'
+                        'top_menu' => $yearData['top_menu']
                     ];
                 }
                 break;
@@ -173,8 +181,19 @@ class AdminController extends Controller
     {
         $orders = Transaction::whereDate('order_date', $date);
         $totalOrders = $orders->count();
-        $completedOrders = $orders->where('status', 'completed')->count();
-        $revenue = $orders->whereIn('status', ['paid', 'completed'])->sum('total_price');
+        $completedOrders = Transaction::whereDate('order_date', $date)->where('status', 'completed')->count();
+        $cancelledOrders = Transaction::whereDate('order_date', $date)->where('status', 'cancelled')->count();
+        $wastedOrders = Transaction::whereDate('order_date', $date)->where('status', 'wasted')->count();
+        $revenue = Transaction::whereDate('order_date', $date)->whereIn('status', ['paid', 'completed'])->sum('total_price');
+        
+        // Debug logging
+        Log::info("Day Stats Debug for {$date}:", [
+            'total_orders' => $totalOrders,
+            'completed_orders' => $completedOrders,
+            'cancelled_orders' => $cancelledOrders,
+            'wasted_orders' => $wastedOrders,
+            'revenue' => $revenue
+        ]);
         
         // Get top menu for the day
         $topMenu = Transaction::whereDate('order_date', $date)
@@ -187,6 +206,8 @@ class AdminController extends Controller
         
         return [
             'orders' => $totalOrders,
+            'completed_orders' => $completedOrders, // Kolom "Diambil": status completed
+            'cancelled_orders' => $wastedOrders, // Kolom "Tidak Diambil": status wasted saja
             'revenue' => $revenue,
             'pickup_rate' => $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100) : 0,
             'top_menu' => $topMenu ? $topMenu->name : 'N/A'
@@ -197,8 +218,10 @@ class AdminController extends Controller
     {
         $orders = Transaction::whereBetween('order_date', [$startDate, $endDate]);
         $totalOrders = $orders->count();
-        $completedOrders = $orders->where('status', 'completed')->count();
-        $revenue = $orders->whereIn('status', ['paid', 'completed'])->sum('total_price');
+        $completedOrders = Transaction::whereBetween('order_date', [$startDate, $endDate])->where('status', 'completed')->count();
+        $cancelledOrders = Transaction::whereBetween('order_date', [$startDate, $endDate])->where('status', 'cancelled')->count();
+        $wastedOrders = Transaction::whereBetween('order_date', [$startDate, $endDate])->where('status', 'wasted')->count();
+        $revenue = Transaction::whereBetween('order_date', [$startDate, $endDate])->whereIn('status', ['paid', 'completed'])->sum('total_price');
         
         // Get top menu for the week
         $topMenu = Transaction::whereBetween('order_date', [$startDate, $endDate])
@@ -211,6 +234,8 @@ class AdminController extends Controller
         
         return [
             'orders' => $totalOrders,
+            'completed_orders' => $completedOrders, // Kolom "Diambil": status completed
+            'cancelled_orders' => $wastedOrders, // Kolom "Tidak Diambil": status wasted saja
             'revenue' => $revenue,
             'pickup_rate' => $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100) : 0,
             'top_menu' => $topMenu ? $topMenu->name : 'N/A'
@@ -224,8 +249,10 @@ class AdminController extends Controller
         
         $orders = Transaction::whereBetween('order_date', [$startMonth, $endMonth]);
         $totalOrders = $orders->count();
-        $completedOrders = $orders->where('status', 'completed')->count();
-        $revenue = $orders->whereIn('status', ['paid', 'completed'])->sum('total_price');
+        $completedOrders = Transaction::whereBetween('order_date', [$startMonth, $endMonth])->where('status', 'completed')->count();
+        $cancelledOrders = Transaction::whereBetween('order_date', [$startMonth, $endMonth])->where('status', 'cancelled')->count();
+        $wastedOrders = Transaction::whereBetween('order_date', [$startMonth, $endMonth])->where('status', 'wasted')->count();
+        $revenue = Transaction::whereBetween('order_date', [$startMonth, $endMonth])->whereIn('status', ['paid', 'completed'])->sum('total_price');
         
         // Get top menu for the month
         $topMenu = Transaction::whereBetween('order_date', [$startMonth, $endMonth])
@@ -238,6 +265,8 @@ class AdminController extends Controller
         
         return [
             'orders' => $totalOrders,
+            'completed_orders' => $completedOrders, // Kolom "Diambil": status completed
+            'cancelled_orders' => $wastedOrders, // Kolom "Tidak Diambil": status wasted saja
             'revenue' => $revenue,
             'pickup_rate' => $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100) : 0,
             'top_menu' => $topMenu ? $topMenu->name : 'N/A'
@@ -251,8 +280,10 @@ class AdminController extends Controller
         
         $orders = Transaction::whereBetween('order_date', [$startYear, $endYear]);
         $totalOrders = $orders->count();
-        $completedOrders = $orders->where('status', 'completed')->count();
-        $revenue = $orders->whereIn('status', ['paid', 'completed'])->sum('total_price');
+        $completedOrders = Transaction::whereBetween('order_date', [$startYear, $endYear])->where('status', 'completed')->count();
+        $cancelledOrders = Transaction::whereBetween('order_date', [$startYear, $endYear])->where('status', 'cancelled')->count();
+        $wastedOrders = Transaction::whereBetween('order_date', [$startYear, $endYear])->where('status', 'wasted')->count();
+        $revenue = Transaction::whereBetween('order_date', [$startYear, $endYear])->whereIn('status', ['paid', 'completed'])->sum('total_price');
         
         // Get top menu for the year
         $topMenu = Transaction::whereBetween('order_date', [$startYear, $endYear])
@@ -265,6 +296,8 @@ class AdminController extends Controller
         
         return [
             'orders' => $totalOrders,
+            'completed_orders' => $completedOrders, // Kolom "Diambil": status completed
+            'cancelled_orders' => $wastedOrders, // Kolom "Tidak Diambil": status wasted saja
             'revenue' => $revenue,
             'pickup_rate' => $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100) : 0,
             'top_menu' => $topMenu ? $topMenu->name : 'N/A'

@@ -43,15 +43,15 @@ class TransactionSeeder extends Seeder
                 // Determine status based on date
                 if ($i == 0) {
                     // Today: mix of all statuses
-                    $statuses = ['pending', 'paid', 'completed', 'cancelled'];
+                    $statuses = ['pending', 'paid', 'completed', 'cancelled', 'wasted'];
                     $status = $statuses[array_rand($statuses)];
                 } elseif ($i == 1) {
-                    // Yesterday: mostly completed or cancelled
-                    $statuses = ['completed', 'completed', 'completed', 'cancelled'];
+                    // Yesterday: mostly completed, some cancelled/wasted
+                    $statuses = ['completed', 'completed', 'completed', 'cancelled', 'wasted'];
                     $status = $statuses[array_rand($statuses)];
                 } else {
-                    // Older dates: mostly completed
-                    $statuses = ['completed', 'completed', 'completed', 'completed', 'cancelled'];
+                    // Older dates: mostly completed, some cancelled/wasted
+                    $statuses = ['completed', 'completed', 'completed', 'completed', 'cancelled', 'wasted'];
                     $status = $statuses[array_rand($statuses)];
                 }
                 
