@@ -28,10 +28,20 @@ class MenuController extends Controller
     /**
      * Display a listing of the menus for admin dashboard.
      */
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
-        $menus = Menu::where('is_active', 1)->with('category')->paginate(10);
+        $query = Menu::where('is_active', 1)->with('category');
+        
+        // Filter by category if specified
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+        
+        $menus = $query->paginate(10);
         $categories = Category::where('is_active', 1)->get();
+        
+        // Append the category filter to pagination links
+        $menus->appends($request->only('category'));
         
         return view('admin.menus.index', compact('menus', 'categories'));
     }
