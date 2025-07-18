@@ -31,34 +31,14 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Page Header -->
         <div class="mb-8">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">History & Analytics Penjualan</h1>
-                    <p class="text-gray-600 mt-1">Tracking penjualan dan analisa performa bisnis CalsFine</p>
-                </div>
-                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                    <div class="flex flex-col">
-                        <label class="text-xs font-medium text-gray-700 mb-1">Periode</label>
-                        <select id="period-filter" onchange="filterPeriod()" class="dropdown-select appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer">
-                            <option value="daily">Harian</option>
-                            <option value="weekly">Mingguan</option>
-                            <option value="monthly">Bulanan</option>
-                            <option value="yearly">Tahunan</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-xs font-medium text-gray-700 mb-1">Urutkan</label>
-                        <select id="sort-filter" onchange="sortData()" class="dropdown-select appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer">
-                            <option value="newest">Terbaru</option>
-                            <option value="oldest">Terlama</option>
-                        </select>
-                    </div>
-                </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">History & Analytics Penjualan</h1>
+                <p class="text-gray-600 mt-1">Tracking penjualan dan analisa bisnis CalsFine</p>
             </div>
         </div>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex items-center">
                     <div class="p-3 bg-blue-100 rounded-lg">
@@ -67,8 +47,9 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-blue-600">Total Pesanan</p>
+                        <p class="text-sm font-medium text-blue-600">Total Pesanan (Keseluruhan)</p>
                         <p class="text-2xl font-bold text-blue-900" id="total-orders">{{ $stats['total_orders'] ?? 0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Semua pesanan yang selesai</p>
                     </div>
                 </div>
             </div>
@@ -81,36 +62,9 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-green-600">Total Revenue</p>
-                        <p class="text-2xl font-bold text-green-900" id="total-revenue">Rp {{ number_format($stats['today_revenue'] ?? 0) }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                    <div class="p-3 bg-yellow-100 rounded-lg">
-                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-yellow-600">Rata-rata/Hari</p>
-                        <p class="text-2xl font-bold text-yellow-900" id="avg-daily">Rp {{ number_format(($stats['today_revenue'] ?? 0)) }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                    <div class="p-3 bg-purple-100 rounded-lg">
-                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-purple-600">Success Rate</p>
-                        <p class="text-2xl font-bold text-purple-900" id="success-rate">{{ $stats['pickup_rate'] ?? 0 }}%</p>
+                        <p class="text-sm font-medium text-green-600">Total Revenue (Keseluruhan)</p>
+                        <p class="text-2xl font-bold text-green-900" id="total-revenue">Rp {{ number_format($stats['total_revenue'] ?? 0) }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Semua pendapatan sejak awal</p>
                     </div>
                 </div>
             </div>
@@ -119,8 +73,30 @@
         <!-- Analytics Table -->
         <div class="bg-white rounded-lg shadow">
             <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Data History Penjualan</h3>
-                <p class="text-gray-600 text-sm">Riwayat transaksi dan performa penjualan berdasarkan periode yang dipilih</p>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Data History Penjualan</h3>
+                        <p class="text-gray-600 text-sm">Riwayat transaksi penjualan berdasarkan periode yang dipilih</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-medium text-gray-700 mb-1">Periode</label>
+                            <select id="period-filter" onchange="filterPeriod()" class="dropdown-select appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer">
+                                <option value="daily">Harian</option>
+                                <option value="weekly">Mingguan</option>
+                                <option value="monthly">Bulanan</option>
+                                <option value="yearly">Tahunan</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-medium text-gray-700 mb-1">Urutkan</label>
+                            <select id="sort-filter" onchange="sortData()" class="dropdown-select appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 cursor-pointer">
+                                <option value="newest">Terbaru</option>
+                                <option value="oldest">Terlama</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -236,7 +212,6 @@
                         
                         totalPages = Math.ceil(currentData.length / itemsPerPage);
                         displayAnalyticsData();
-                        updateSummaryCardsFromAPI(data.summary);
                         updatePaginationInfo();
                     } else {
                         throw new Error('Failed to load data');
@@ -295,14 +270,6 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.top_menu || '-'}</td>
                 </tr>
             `).join('');
-        }
-
-        function updateSummaryCardsFromAPI(summary) {
-            console.log('Summary data:', summary); // Debug log
-            document.getElementById('total-orders').textContent = summary?.total_orders || 0;
-            document.getElementById('total-revenue').textContent = `Rp ${(summary?.total_revenue || 0).toLocaleString('id-ID')}`;
-            document.getElementById('avg-daily').textContent = `Rp ${Math.floor((summary?.total_revenue || 0) / 7).toLocaleString('id-ID')}`;
-            document.getElementById('success-rate').textContent = `${Math.round(summary?.avg_pickup_rate || 0)}%`;
         }
 
         function updatePaginationInfo() {
