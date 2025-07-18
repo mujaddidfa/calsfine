@@ -26,7 +26,6 @@ class MenuFactory extends Factory
             'category_id' => function () {
                 return Category::inRandomOrder()->first()->id;
             },
-            'photo' => 'default.jpg',
             'is_active' => 1
         ];
     }

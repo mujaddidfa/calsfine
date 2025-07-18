@@ -6,6 +6,7 @@ use App\Models\Menu;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class MenuController extends Controller
 {
@@ -50,11 +51,34 @@ class MenuController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('menus')->where(function ($query) use ($request) {
+                    return $query->where('category_id', $request->category_id)
+                                 ->where('is_active', 1);
+                })
+            ],
             'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'price' => [
+                'required',
+                'numeric',
+                'min:0',
+                'regex:/^[1-9][0-9]*$|^0$/'
+            ],
+            'stock' => [
+                'required',
+                'integer',
+                'min:0',
+                'regex:/^[1-9][0-9]*$|^0$/'
+            ],
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'name.unique' => 'Nama menu sudah ada dalam kategori yang sama. Silakan gunakan nama yang berbeda.',
+            'price.regex' => 'Harga tidak boleh dimulai dengan angka 0.',
+            'stock.regex' => 'Stok tidak boleh dimulai dengan angka 0.'
         ]);
 
         $menuData = $request->all();
@@ -95,11 +119,34 @@ class MenuController extends Controller
     public function update(Request $request, Menu $menu)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('menus')->where(function ($query) use ($request) {
+                    return $query->where('category_id', $request->category_id)
+                                 ->where('is_active', 1);
+                })->ignore($menu->id)
+            ],
             'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'price' => [
+                'required',
+                'numeric',
+                'min:0',
+                'regex:/^[1-9][0-9]*$|^0$/'
+            ],
+            'stock' => [
+                'required',
+                'integer',
+                'min:0',
+                'regex:/^[1-9][0-9]*$|^0$/'
+            ],
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'name.unique' => 'Nama menu sudah ada dalam kategori yang sama. Silakan gunakan nama yang berbeda.',
+            'price.regex' => 'Harga tidak boleh dimulai dengan angka 0.',
+            'stock.regex' => 'Stok tidak boleh dimulai dengan angka 0.'
         ]);
 
         $menuData = $request->all();

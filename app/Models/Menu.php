@@ -30,4 +30,12 @@ class Menu extends Model
     {
         return $this->hasMany(TransactionItem::class);
     }
+
+    /**
+     * Check if the menu is in stock
+     */
+    public function isInStock()
+    {
+        return $this->stock > 0;
+    }
 }

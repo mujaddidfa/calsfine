@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->integer('stock');
                 $table->text('description')->nullable();
                 $table->foreignId('category_id')->nullable()->constrained('categories')->cascadeOnUpdate();
-                $table->string('photo')->nullable();
+                $table->string('image')->nullable();
                 $table->boolean('is_active')->default(1);
                 $table->timestamps();
             });

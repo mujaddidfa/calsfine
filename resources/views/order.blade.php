@@ -54,8 +54,8 @@
             @forelse($menus as $menu)
             <!-- Card Produk -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                @if($menu->photo && $menu->photo !== 'default.jpg' && file_exists(public_path('storage/' . $menu->photo)))
-                    <img src="{{ asset('storage/' . $menu->photo) }}" alt="{{ $menu->name }}" class="w-full h-40 object-cover">
+                @if($menu->image && $menu->image !== 'default.jpg' && file_exists(public_path('storage/' . $menu->image)))
+                    <img src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}" class="w-full h-40 object-cover">
                 @else
                     <div class="w-full h-40 bg-gray-200 flex items-center justify-center">
                         <span class="text-gray-500 text-sm">Foto Produk</span>
