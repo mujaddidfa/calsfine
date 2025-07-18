@@ -68,10 +68,14 @@ class AdminController extends Controller
         // Hanya hitung pesanan yang sudah selesai prosesnya (completed + wasted)
         $totalOrders = Transaction::whereIn('status', ['completed', 'wasted'])->count();
         $totalRevenue = Transaction::whereIn('status', ['completed'])->sum('total_price'); // Revenue hanya dari completed
+        $completedOrders = Transaction::where('status', 'completed')->count(); // Pesanan yang diambil
+        $wastedOrders = Transaction::where('status', 'wasted')->count(); // Pesanan yang tidak diambil
         
         $stats = [
             'total_orders' => $totalOrders, // Total pesanan yang selesai (completed + wasted)
             'total_revenue' => $totalRevenue, // Revenue hanya dari pesanan completed
+            'completed_orders' => $completedOrders, // Pesanan yang diambil
+            'wasted_orders' => $wastedOrders, // Pesanan yang tidak diambil
         ];
 
         return view('admin.analytics', compact('stats'));

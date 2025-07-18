@@ -38,7 +38,7 @@
         </div>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex items-center">
                     <div class="p-3 bg-blue-100 rounded-lg">
@@ -47,24 +47,50 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-blue-600">Total Pesanan (Keseluruhan)</p>
+                        <p class="text-sm font-medium text-blue-600">Total Pesanan</p>
                         <p class="text-2xl font-bold text-blue-900" id="total-orders">{{ $stats['total_orders'] ?? 0 }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Semua pesanan yang selesai</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="flex items-center">
+                    <div class="p-3 bg-emerald-100 rounded-lg">
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-emerald-600">Pesanan Diambil</p>
+                        <p class="text-2xl font-bold text-emerald-900" id="completed-orders">{{ $stats['completed_orders'] ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-lg">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-red-600">Pesanan Tidak Diambil</p>
+                        <p class="text-2xl font-bold text-red-900" id="wasted-orders">{{ $stats['wasted_orders'] ?? 0 }}</p>
                     </div>
                 </div>
             </div>
             
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex items-center">
-                    <div class="p-3 bg-green-100 rounded-lg">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="p-3 bg-purple-100 rounded-lg">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-green-600">Total Revenue (Keseluruhan)</p>
-                        <p class="text-2xl font-bold text-green-900" id="total-revenue">Rp {{ number_format($stats['total_revenue'] ?? 0) }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Semua pendapatan sejak awal</p>
+                        <p class="text-sm font-medium text-purple-600">Total Revenue</p>
+                        <p class="text-2xl font-bold text-purple-900" id="total-revenue">Rp {{ number_format($stats['total_revenue'] ?? 0) }}</p>
                     </div>
                 </div>
             </div>
