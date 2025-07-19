@@ -108,32 +108,34 @@
                     </div>
 
                     <!-- Price & Stock -->
-                    <div class="grid grid-cols-2 gap-6 mb-8">
-                        <div class="bg-primary-50 rounded-xl p-6 border border-primary-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Price Card -->
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-lg bg-primary-500 text-white">
+                                <div class="p-3 rounded-lg bg-blue-500 text-white">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-primary-600">Harga</p>
-                                    <p class="text-2xl font-bold text-primary-900">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
+                                    <p class="text-sm font-medium text-blue-600">Harga</p>
+                                    <p class="text-2xl font-bold text-blue-900">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="bg-green-50 rounded-xl p-6 border border-green-100">
+                        <!-- Stock Card -->
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-lg {{ $menu->stock > 0 ? 'bg-green-500' : 'bg-red-500' }} text-white">
+                                <div class="p-3 rounded-lg {{ isset($menu->stock) && $menu->stock > 0 ? 'bg-green-500' : 'bg-red-500' }} text-white">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium {{ $menu->stock > 0 ? 'text-green-600' : 'text-red-600' }}">Stok</p>
-                                    <p class="text-2xl font-bold {{ $menu->stock > 0 ? 'text-green-900' : 'text-red-900' }}">
-                                        {{ $menu->stock > 0 ? $menu->stock . ' tersedia' : 'Habis' }}
+                                    <p class="text-sm font-medium {{ isset($menu->stock) && $menu->stock > 0 ? 'text-green-600' : 'text-red-600' }}">Stok</p>
+                                    <p class="text-2xl font-bold {{ isset($menu->stock) && $menu->stock > 0 ? 'text-green-900' : 'text-red-900' }}">
+                                        {{ isset($menu->stock) ? ($menu->stock > 0 ? $menu->stock . ' tersedia' : 'Habis') : 'Data tidak tersedia' }}
                                     </p>
                                 </div>
                             </div>
@@ -191,8 +193,8 @@
             // Smooth scroll to top when navigating
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            // Auto-hide success message after 5 seconds
-            const successAlert = document.querySelector('.bg-green-50');
+            // Auto-hide success message after 5 seconds - use more specific selector
+            const successAlert = document.querySelector('.bg-green-50.border-green-200');
             if (successAlert) {
                 setTimeout(function() {
                     successAlert.style.transition = 'opacity 0.5s ease-in-out';
