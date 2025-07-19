@@ -214,7 +214,6 @@ class LocationController extends Controller
 
         $location->pickupTimes()->create([
             'pickup_time' => $request->pickup_time . ':00',
-            'is_active' => true,
         ]);
 
         return back()->with('success', 'Jam pickup berhasil ditambahkan!');

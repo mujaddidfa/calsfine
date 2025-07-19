@@ -126,30 +126,14 @@
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-medium text-gray-900">Jam Pickup</h3>
-                        <button onclick="openAddPickupModal({{ $location->id }})" class="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg text-sm font-medium inline-flex items-center transition-colors duration-200 cursor-pointer">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Tambah Jam
-                        </button>
+                        <!-- Tombol tambah jam pickup dihapus sesuai permintaan -->
                     </div>
                     
                     @if($location->pickupTimes->count() > 0)
                         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                             @foreach($location->pickupTimes as $pickupTime)
-                                <div class="pickup-time-card relative flex items-center justify-between p-3 border rounded-lg transition-all duration-200 bg-blue-50 border-blue-200 hover:bg-blue-100">
-                                    <span class="text-sm font-medium text-blue-700">
-                                        {{ $pickupTime->formatted_time }}
-                                    </span>
-                                    <div class="flex items-center">
-                                        <form action="{{ route('admin.locations.pickup-times.destroy', [$location, $pickupTime]) }}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus jam {{ $pickupTime->formatted_time }}?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="px-2 py-1 text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded transition-colors duration-200 cursor-pointer">
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    </div>
+                                <div class="pickup-time-card flex items-center justify-center p-3 border rounded-lg transition-all duration-200 bg-blue-50 border-blue-200 text-blue-700 text-sm font-medium">
+                                    {{ $pickupTime->formatted_time }}
                                 </div>
                             @endforeach
                         </div>
@@ -159,9 +143,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <p class="text-sm text-gray-500 mb-2">Belum ada jam pickup</p>
-                            <button onclick="openAddPickupModal({{ $location->id }})" class="text-primary-600 hover:text-primary-800 text-sm cursor-pointer">
-                                Tambah jam pickup pertama
-                            </button>
+                            <!-- Tombol tambah jam pickup pertama dihapus sesuai permintaan -->
                         </div>
                     @endif
                 </div>
@@ -186,46 +168,7 @@
         @endif
     </div>
 
-    <!-- Add Pickup Time Modal -->
-    <div id="addPickupModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeAddPickupModal()"></div>
-            
-            <!-- Modal panel -->
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <form id="addPickupForm" method="POST">
-                    @csrf
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div class="sm:flex sm:items-start">
-                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10">
-                                <svg class="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                    Tambah Jam Pickup
-                                </h3>
-                                <div class="mt-4">
-                                    <label for="pickup_time" class="block text-sm font-medium text-gray-700 mb-2">Jam Pickup</label>
-                                    <input type="time" id="pickup_time" name="pickup_time" class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" required>
-                                    <p class="mt-1 text-xs text-gray-500">Pilih jam pickup yang akan tersedia untuk lokasi ini</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200 cursor-pointer">
-                            Tambah
-                        </button>
-                        <button onclick="closeAddPickupModal()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200 cursor-pointer">
-                            Batal
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- Modal tambah jam pickup dihapus sesuai permintaan -->
 
     <!-- Custom Delete Confirmation Modal -->
     <div id="deleteModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -353,28 +296,7 @@
             }
         });
 
-        // Pickup Time Modal Functions
-        let currentLocationId = null;
-
-        function openAddPickupModal(locationId) {
-            currentLocationId = locationId;
-            const modal = document.getElementById('addPickupModal');
-            const form = document.getElementById('addPickupForm');
-            
-            // Set form action URL
-            form.action = `/admin/locations/${locationId}/pickup-times`;
-            
-            modal.classList.remove('hidden');
-        }
-
-        function closeAddPickupModal() {
-            const modal = document.getElementById('addPickupModal');
-            modal.classList.add('hidden');
-            
-            // Reset form
-            document.getElementById('pickup_time').value = '';
-            currentLocationId = null;
-        }
+        // Fungsi modal tambah jam pickup dihapus sesuai permintaan
 
         // Add loading state to pickup time buttons when clicked
         document.addEventListener('DOMContentLoaded', function() {
