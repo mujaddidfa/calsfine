@@ -154,4 +154,21 @@ class AdminOrderController extends Controller
 
         return view('admin.orders.report', compact('orders', 'statistics', 'date'));
     }
+
+    /**
+     * Update the status of an order from the detail page.
+     */
+    public function updateStatus(Request $request, Transaction $order)
+    {
+        $request->validate([
+            'status' => 'required|in:paid,completed,cancelled,wasted',
+        ]);
+
+        $status = $request->input('status');
+        $updateData = ['status' => $status];
+
+        $order->update($updateData);
+
+        return back()->with('success', 'Status pesanan berhasil diperbarui.');
+    }
 }

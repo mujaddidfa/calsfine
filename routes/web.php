@@ -16,6 +16,7 @@ Route::get('/order', [OrderController::class, 'index'])->name('order');
 
 // Admin dashboard routes
 Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(function () {
+    
     // Main Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
@@ -28,6 +29,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(functi
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/completed', [AdminOrderController::class, 'markCompleted'])->name('orders.completed');
     Route::patch('/orders/{order}/cancelled', [AdminOrderController::class, 'markCancelled'])->name('orders.cancelled');
+    Route::patch('/orders/{order}/update-status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('/orders/bulk-update', [AdminOrderController::class, 'bulkUpdate'])->name('orders.bulk-update');
     
     // Menu Management Routes

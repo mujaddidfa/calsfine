@@ -35,30 +35,18 @@
                 </div>
                 <div class="mb-2">
                     <span class="font-medium text-gray-700">Status:</span>
-                    @php
-                        $statusColors = [
-                            'pending' => 'bg-secondary-100 text-secondary-800',
-                            'paid' => 'bg-blue-100 text-blue-800',
-                            'completed' => 'bg-green-100 text-green-800',
-                            'cancelled' => 'bg-red-100 text-red-800',
-                            'wasted' => 'bg-red-100 text-red-800',
-                        ];
-                    @endphp
-                    <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold {{ $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800' }}">
-                        @if($order->status === 'pending')
-                            Menunggu Pembayaran
-                        @elseif($order->status === 'paid')
-                            Menunggu Pickup
-                        @elseif($order->status === 'completed')
-                            Sudah Diambil
-                        @elseif($order->status === 'cancelled')
-                            Tidak Diambil
-                        @elseif($order->status === 'wasted')
-                            Tidak Diambil
-                        @else
-                            {{ ucfirst($order->status) }}
-                        @endif
-                    </span>
+                    <!-- Status Update Form -->
+                    <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST" class="inline">
+                        @csrf
+                        @method('PATCH')
+                        <select name="status" class="border-gray-300 rounded-md text-xs py-1 px-2 mr-2">
+                            <option value="paid" {{ $order->status == 'paid' ? 'selected' : '' }}>Menunggu Pickup</option>
+                            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Sudah Diambil</option>
+                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
+                            <option value="wasted" {{ $order->status == 'wasted' ? 'selected' : '' }}>Tidak Diambil</option>
+                        </select>
+                        <button type="submit" class="bg-primary-500 text-white text-xs px-3 py-1 rounded">Ubah</button>
+                    </form>
                 </div>
                 @if($order->notes)
                 <div class="mb-2">
@@ -104,7 +92,7 @@
         @endif
 
         <div class="flex justify-end">
-            <a href="{{ url()->previous() }}" class="inline-block px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium">Kembali</a>
+            <a href="{{ route('admin.dashboard') }}" class="inline-block px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium">Kembali</a>
         </div>
     </div>
 </div>
