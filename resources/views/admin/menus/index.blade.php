@@ -155,7 +155,7 @@
                                     <a href="{{ route('admin.menus.show', $menu) }}" class="text-blue-600 hover:text-blue-900 font-medium transition-colors duration-200">
                                         Lihat
                                     </a>
-                                    <a href="{{ route('admin.menus.edit', $menu) }}" class="text-amber-600 hover:text-amber-900 font-medium transition-colors duration-200">
+                                    <a href="{{ route('admin.menus.edit', $menu) }}?from=index" class="text-amber-600 hover:text-amber-900 font-medium transition-colors duration-200">
                                         Edit
                                     </a>
                                     <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus menu ini?')">

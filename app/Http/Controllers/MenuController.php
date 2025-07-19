@@ -123,7 +123,11 @@ class MenuController extends Controller
     public function edit(Menu $menu)
     {
         $categories = Category::where('is_active', 1)->get();
-        return view('admin.menus.edit', compact('menu', 'categories'));
+        
+        // Determine where user came from
+        $referrer = request('from', 'show'); // default to 'show' if not specified
+        
+        return view('admin.menus.edit', compact('menu', 'categories', 'referrer'));
     }
 
     /**
@@ -164,9 +168,17 @@ class MenuController extends Controller
 
         $menuData = $request->all();
         
-        // Handle image upload
+        // Handle image removal
+        if ($request->has('remove_image') && $request->input('remove_image')) {
+            if ($menu->image) {
+                Storage::disk('public')->delete($menu->image);
+                $menuData['image'] = null;
+            }
+        }
+        
+        // Handle new image upload
         if ($request->hasFile('image')) {
-            // Delete old image
+            // Delete old image if exists
             if ($menu->image) {
                 Storage::disk('public')->delete($menu->image);
             }
@@ -177,7 +189,14 @@ class MenuController extends Controller
 
         $menu->update($menuData);
 
-        return redirect()->route('admin.menus')->with('success', 'Menu berhasil diperbarui!');
+        // Redirect based on where user came from
+        $from = $request->input('from', 'show');
+        
+        if ($from === 'index') {
+            return redirect()->route('admin.menus')->with('success', 'Menu berhasil diperbarui!');
+        } else {
+            return redirect()->route('admin.menus.show', $menu)->with('success', 'Menu berhasil diperbarui!');
+        }
     }
 
     /**

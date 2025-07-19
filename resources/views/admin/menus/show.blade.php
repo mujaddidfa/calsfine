@@ -11,6 +11,36 @@
     
     @include('admin.partials.navbar')
 
+    <!-- Success Message -->
+    @if (session('success'))
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">
+                            {{ session('success') }}
+                        </p>
+                    </div>
+                    <div class="ml-auto pl-3">
+                        <div class="-mx-1.5 -my-1.5">
+                            <button type="button" class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600" onclick="this.parentElement.parentElement.parentElement.parentElement.style.display='none'">
+                                <span class="sr-only">Dismiss</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Action Buttons -->
@@ -26,7 +56,7 @@
                     </svg>
                     Kembali
                 </a>
-                <a href="{{ route('admin.menus.edit', $menu) }}" class="bg-secondary-500 hover:bg-secondary-600 text-gray-800 px-6 py-3 rounded-lg font-medium inline-flex items-center transition-colors duration-200">
+                <a href="{{ route('admin.menus.edit', $menu) }}?from=show" class="bg-secondary-500 hover:bg-secondary-600 text-gray-800 px-6 py-3 rounded-lg font-medium inline-flex items-center transition-colors duration-200">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
@@ -160,6 +190,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Smooth scroll to top when navigating
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Auto-hide success message after 5 seconds
+            const successAlert = document.querySelector('.bg-green-50');
+            if (successAlert) {
+                setTimeout(function() {
+                    successAlert.style.transition = 'opacity 0.5s ease-in-out';
+                    successAlert.style.opacity = '0';
+                    setTimeout(function() {
+                        successAlert.style.display = 'none';
+                    }, 500);
+                }, 5000);
+            }
         });
     </script>
 </body>

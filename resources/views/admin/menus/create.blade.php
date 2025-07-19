@@ -72,7 +72,7 @@
                                 <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span>
                                 <input type="number" id="price" name="price" value="{{ old('price') }}" 
                                        class="w-full pl-12 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('price') border-red-500 @enderror" 
-                                       placeholder="25000" min="0" step="500" pattern="[0-9]*"
+                                       placeholder="25000" min="0" pattern="[0-9]*"
                                        oninput="removeLeadingZeros(this)" required>
                             </div>
                             @error('price')
@@ -141,10 +141,10 @@
 
                 <!-- Submit Buttons -->
                 <div class="mt-8 flex items-center justify-end space-x-4 pt-6 border-t">
-                    <a href="{{ route('admin.menus') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-medium">
+                    <a href="{{ route('admin.menus') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-medium cursor-pointer">
                         Batal
                     </a>
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">
+                    <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium cursor-pointer">
                         Simpan Menu
                     </button>
                 </div>
