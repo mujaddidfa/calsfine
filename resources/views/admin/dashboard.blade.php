@@ -29,9 +29,16 @@
         <!-- Page Header with H-1 Info -->
         <div class="mb-8">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-3xl font-bold text-gray-900">Dashboard CalsFine</h2>
-                </div>
+                <h2 class="text-3xl font-bold text-gray-900">Dashboard CalsFine</h2>
+                <button type="button" class="inline-flex items-center px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white text-base font-semibold rounded-lg shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="14" y="3" width="7" height="7" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="14" y="14" width="7" height="7" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="3" y="14" width="7" height="7" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Scan QR Pickup
+                </button>
             </div>
         </div>
 
@@ -98,83 +105,6 @@
                         <h3 class="text-sm font-medium text-gray-500">Pesanan Besok</h3>
                         <p class="text-2xl font-bold text-gray-900">{{ $stats['tomorrow_orders'] }}</p>
                         <p class="text-xs text-secondary-600 mt-1">Siap untuk besok</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions for H-1 Order Management -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            
-            <!-- History dan Analytics -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">History & Analytics</h3>
-                        <p class="text-gray-600 text-sm mb-4">Lihat riwayat penjualan dan analisis data</p>
-                        <a href="{{ route('admin.analytics') }}" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 inline-block">
-                            Lihat Analytics
-                        </a>
-                    </div>
-                    <div class="text-primary-500">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kelola Menu -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Kelola Menu</h3>
-                        <p class="text-gray-600 text-sm mb-4">Tambah, edit, dan hapus menu makanan</p>
-                        <a href="{{ route('admin.menus') }}" class="bg-secondary-500 hover:bg-secondary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 inline-block">
-                            Kelola Menu
-                        </a>
-                    </div>
-                    <div class="text-secondary-500">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kelola Kategori -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Kelola Kategori</h3>
-                        <p class="text-gray-600 text-sm mb-4">Atur kategori untuk menu makanan</p>
-                        <a href="{{ route('admin.categories') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 inline-block">
-                            Kelola Kategori
-                        </a>
-                    </div>
-                    <div class="text-blue-500">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kelola Lokasi -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Kelola Lokasi</h3>
-                        <p class="text-gray-600 text-sm mb-4">Atur lokasi pickup untuk customer</p>
-                        <a href="{{ route('admin.locations') }}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 inline-block">
-                            Kelola Lokasi
-                        </a>
-                    </div>
-                    <div class="text-green-500">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
                     </div>
                 </div>
             </div>
