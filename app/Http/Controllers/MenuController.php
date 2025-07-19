@@ -111,6 +111,9 @@ class MenuController extends Controller
      */
     public function show(Menu $menu)
     {
+        // Load the category relationship for better performance
+        $menu->load('category');
+        
         return view('admin.menus.show', compact('menu'));
     }
 
