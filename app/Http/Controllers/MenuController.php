@@ -30,7 +30,7 @@ class MenuController extends Controller
      */
     public function adminIndex(Request $request)
     {
-        $query = Menu::where('is_active', 1)->with('category');
+        $query = Menu::where('is_active', 1)->with('category')->orderBy('created_at', 'desc');
         
         // Filter by category if specified
         if ($request->filled('category')) {
