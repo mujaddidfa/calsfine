@@ -158,10 +158,10 @@
                                     <a href="{{ route('admin.menus.edit', $menu) }}?from=index" class="text-amber-600 hover:text-amber-900 font-medium transition-colors duration-200">
                                         Edit
                                     </a>
-                                    <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus menu ini?')">
+                                    <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="inline" onsubmit="return showDeleteConfirmation(event, '{{ $menu->name }}')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 font-medium transition-colors duration-200">
+                                        <button type="submit" class="text-red-600 hover:text-red-900 font-medium transition-colors duration-200 cursor-pointer">
                                             Hapus
                                         </button>
                                     </form>
@@ -199,7 +199,53 @@
         </div>
     </div>
 
+    <!-- Custom Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeDeleteModal()"></div>
+            
+            <!-- Modal content -->
+            <div class="inline-block align-bottom bg-white rounded-2xl px-6 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-8">
+                <!-- Icon -->
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                    <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                
+                <!-- Content -->
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Hapus Menu?</h3>
+                    <div class="mb-6">
+                        <p class="text-gray-600 text-base mb-2">Anda yakin ingin menghapus menu:</p>
+                        <p id="menuNameToDelete" class="text-lg font-semibold text-gray-900 bg-gray-50 px-4 py-2 rounded-lg inline-block"></p>
+                        <p class="text-sm text-red-600 mt-3 font-medium">Aksi ini tidak dapat dibatalkan</p>
+                    </div>
+                </div>
+                
+                <!-- Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button type="button" onclick="closeDeleteModal()" class="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-xl transition-colors duration-200 cursor-pointer">
+                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Batal
+                    </button>
+                    <button type="button" onclick="confirmDelete()" class="w-full sm:w-auto px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors duration-200 cursor-pointer">
+                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Ya, Hapus Menu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let currentForm = null;
+
         // Auto-hide success/error messages after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('[role="alert"], .bg-green-50, .bg-red-50');
@@ -212,6 +258,75 @@
                     }, 500);
                 }, 5000);
             });
+        });
+
+        // Show custom delete confirmation modal
+        function showDeleteConfirmation(event, menuName) {
+            event.preventDefault();
+            currentForm = event.target;
+            
+            // Update menu name in modal
+            document.getElementById('menuNameToDelete').textContent = menuName;
+            
+            // Show modal with animation
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('hidden');
+            
+            // Add animation
+            setTimeout(() => {
+                modal.querySelector('.bg-white').classList.add('scale-100');
+                modal.querySelector('.bg-gray-500').classList.add('opacity-75');
+            }, 10);
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+            
+            return false;
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            
+            // Remove animation
+            modal.querySelector('.bg-white').classList.remove('scale-100');
+            modal.querySelector('.bg-gray-500').classList.remove('opacity-75');
+            
+            // Hide modal after animation
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                currentForm = null;
+            }, 200);
+        }
+
+        // Confirm deletion
+        function confirmDelete() {
+            if (currentForm) {
+                // Show loading state
+                const confirmBtn = document.querySelector('button[onclick="confirmDelete()"]');
+                const originalContent = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = `
+                    <svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Menghapus...
+                `;
+                confirmBtn.disabled = true;
+                
+                // Submit form after short delay for UX
+                setTimeout(() => {
+                    currentForm.submit();
+                }, 500);
+            }
+        }
+
+        // Close modal when ESC is pressed
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeDeleteModal();
+            }
         });
     </script>
 </body>
