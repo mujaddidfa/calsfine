@@ -13,7 +13,7 @@ class Location extends Model
 
     protected $fillable = [
         'name', 'address', 'contact_person', 
-        'contact_phone', 'operating_hours', 'is_active'
+        'contact_phone', 'operating_hours', 'url', 'is_active'
     ];
 
     protected $casts = [

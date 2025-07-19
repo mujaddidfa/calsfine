@@ -97,6 +97,18 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <!-- Link Lokasi -->
+                    <div>
+                        <label for="url" class="block text-sm font-medium text-gray-700 mb-2">Link Lokasi</label>
+                        <input type="url" id="url" name="url" value="{{ old('url', $location->url) }}" 
+                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('url') border-red-500 @enderror" 
+                               placeholder="https://maps.google.com/... atau https://goo.gl/maps/...">
+                        <p class="mt-1 text-xs text-gray-500">Link Google Maps atau platform peta lainnya untuk memudahkan customer menemukan lokasi</p>
+                        @error('url')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Submit Buttons -->

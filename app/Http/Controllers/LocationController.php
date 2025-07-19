@@ -51,7 +51,8 @@ class LocationController extends Controller
             'address' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:20',
-            'operating_hours' => 'nullable|string'
+            'operating_hours' => 'nullable|string',
+            'url' => 'nullable|url'
         ]);
 
         $locationData = $request->all();
@@ -89,10 +90,11 @@ class LocationController extends Controller
             'address' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:20',
-            'operating_hours' => 'nullable|string'
+            'operating_hours' => 'nullable|string',
+            'url' => 'nullable|url'
         ]);
 
-        $locationData = $request->only(['name', 'address', 'contact_person', 'contact_phone', 'operating_hours']);
+        $locationData = $request->only(['name', 'address', 'contact_person', 'contact_phone', 'operating_hours', 'url']);
         // Don't update is_active field - it's managed by soft delete only
 
         $location->update($locationData);
