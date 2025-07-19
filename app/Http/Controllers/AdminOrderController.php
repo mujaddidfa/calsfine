@@ -17,7 +17,7 @@ class AdminOrderController extends Controller
     {
         $today = Carbon::today();
         
-        $query = Transaction::with(['location', 'transactionItems.menu'])
+        $query = Transaction::with(['location', 'items.menu'])
             ->whereDate('pick_up_date', $today);
 
         // Filter by status if requested
@@ -43,7 +43,7 @@ class AdminOrderController extends Controller
     {
         $tomorrow = Carbon::tomorrow();
         
-        $orders = Transaction::with(['location', 'transactionItems.menu'])
+        $orders = Transaction::with(['location', 'items.menu'])
             ->whereDate('pick_up_date', $tomorrow)
             ->where('status', 'paid')
             ->orderBy('pick_up_date', 'asc')
@@ -57,7 +57,7 @@ class AdminOrderController extends Controller
      */
     public function show(Transaction $order)
     {
-        $order->load(['location', 'transactionItems.menu']);
+        $order->load(['location', 'items.menu']);
         return view('admin.orders.show', compact('order'));
     }
 
@@ -139,7 +139,7 @@ class AdminOrderController extends Controller
     {
         $date = $request->date ? Carbon::parse($request->date) : Carbon::today();
         
-        $orders = Transaction::with(['location', 'transactionItems.menu'])
+        $orders = Transaction::with(['location', 'items.menu'])
             ->whereDate('pick_up_date', $date)
             ->get();
 

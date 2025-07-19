@@ -199,7 +199,7 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <button class="text-primary-600 hover:text-primary-800 font-medium">Detail</button>
+                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="text-primary-600 hover:text-primary-800 font-medium">Detail</a>
                                 </td>
                             </tr>
                             @empty
