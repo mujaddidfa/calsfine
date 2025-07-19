@@ -1,5 +1,19 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="        <!-- Form -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <!-- Display All Errors for Debugging -->
+            @if ($errors->any())
+                <div class="mb-6 bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    <p class="font-medium">Terjadi error saat menyimpan:</p>
+                    <ul class="mt-2 list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('admin.locations.store') }}" method="POST">>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,66 +58,39 @@
                         @enderror
                     </div>
 
-                    <!-- Alamat -->
-                    <div>
-                        <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Alamat *</label>
-                        <textarea id="address" name="address" rows="3" 
-                                  class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('address') border-red-500 @enderror" 
-                                  placeholder="Alamat lengkap lokasi pickup..." required>{{ old('address') }}</textarea>
-                        @error('address')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Kontak Person -->
-                    <div>
-                        <label for="contact_person" class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
-                        <input type="text" id="contact_person" name="contact_person" value="{{ old('contact_person') }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('contact_person') border-red-500 @enderror" 
-                               placeholder="Nama penanggung jawab lokasi">
-                        @error('contact_person')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Nomor Telepon -->
-                    <div>
-                        <label for="contact_phone" class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon</label>
-                        <input type="text" id="contact_phone" name="contact_phone" value="{{ old('contact_phone') }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('contact_phone') border-red-500 @enderror" 
-                               placeholder="08xxxxxxxxxx">
-                        @error('contact_phone')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Jam Operasional -->
-                    <div>
-                        <label for="operating_hours" class="block text-sm font-medium text-gray-700 mb-2">Jam Operasional</label>
-                        <input type="text" id="operating_hours" name="operating_hours" value="{{ old('operating_hours') }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('operating_hours') border-red-500 @enderror" 
-                               placeholder="Misal: Senin-Jumat 08:00-17:00">
-                        @error('operating_hours')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
                     <!-- Link Lokasi -->
                     <div>
-                        <label for="url" class="block text-sm font-medium text-gray-700 mb-2">Link Lokasi</label>
+                        <label for="url" class="block text-sm font-medium text-gray-700 mb-2">Link Lokasi *</label>
                         <input type="url" id="url" name="url" value="{{ old('url') }}" 
                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('url') border-red-500 @enderror" 
-                               placeholder="https://maps.google.com/... atau https://goo.gl/maps/...">
+                               placeholder="https://maps.google.com/... atau https://goo.gl/maps/..." required>
                         <p class="mt-1 text-xs text-gray-500">Link Google Maps atau platform peta lainnya untuk memudahkan customer menemukan lokasi</p>
                         @error('url')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <!-- Jam Pickup -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Jam Pickup</label>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-2">
+                                <input type="time" id="pickup_time_1" name="pickup_times[]" 
+                                       class="border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                                       placeholder="Pilih jam">
+                                <button type="button" onclick="addPickupTimeField()" class="text-primary-600 hover:text-primary-800 text-sm cursor-pointer">
+                                    + Tambah jam lain
+                                </button>
+                            </div>
+                            <div id="additionalPickupTimes"></div>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">Tambahkan jam-jam pickup yang tersedia untuk lokasi ini</p>
+                    </div>
                 </div>
 
                 <!-- Submit Buttons -->
                 <div class="mt-8 flex items-center justify-end space-x-4 pt-6 border-t">
-                    <a href="{{ route('admin.locations') }}" class="bg-slate-300 hover:bg-slate-400 text-slate-800 px-6 py-2 rounded-lg font-medium transition-colors duration-200">
+                    <a href="{{ route('admin.locations') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-medium transition-colors duration-200 cursor-pointer">
                         Batal
                     </a>
                     <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 cursor-pointer">
@@ -113,5 +100,36 @@
             </form>
         </div>
     </div>
+
+    <script>
+        let pickupTimeCounter = 1;
+
+        function addPickupTimeField() {
+            pickupTimeCounter++;
+            const additionalContainer = document.getElementById('additionalPickupTimes');
+            
+            const newField = document.createElement('div');
+            newField.className = 'flex items-center space-x-2';
+            newField.id = `pickup_time_field_${pickupTimeCounter}`;
+            
+            newField.innerHTML = `
+                <input type="time" id="pickup_time_${pickupTimeCounter}" name="pickup_times[]" 
+                       class="border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                       placeholder="Pilih jam">
+                <button type="button" onclick="removePickupTimeField(${pickupTimeCounter})" class="text-red-600 hover:text-red-800 text-sm cursor-pointer">
+                    Hapus
+                </button>
+            `;
+            
+            additionalContainer.appendChild(newField);
+        }
+
+        function removePickupTimeField(id) {
+            const field = document.getElementById(`pickup_time_field_${id}`);
+            if (field) {
+                field.remove();
+            }
+        }
+    </script>
 </body>
 </html>

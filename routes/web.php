@@ -8,6 +8,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\AdminOrderController;
+use App\Http\Controllers\PickupTimeController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -62,6 +63,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(functi
     Route::put('/locations/{location}', [LocationController::class, 'update'])->name('locations.update');
     Route::delete('/locations/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
     Route::patch('/locations/{location}/toggle', [LocationController::class, 'toggleStatus'])->name('locations.toggle');
+    
+    // Pickup Time Management Routes (integrated with locations)
+    Route::post('/locations/{location}/pickup-times', [LocationController::class, 'storePickupTime'])->name('locations.pickup-times.store');
+    Route::delete('/locations/{location}/pickup-times/{pickupTime}', [LocationController::class, 'destroyPickupTime'])->name('locations.pickup-times.destroy');
 });
 
 // Redirect /admin to dashboard

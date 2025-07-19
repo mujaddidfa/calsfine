@@ -27,6 +27,9 @@ class LocationController extends Controller
     {
         $locations = Location::where('is_active', 1)
                            ->withCount('transactions')
+                           ->with(['pickupTimes' => function($query) {
+                               $query->orderBy('pickup_time');
+                           }])
                            ->orderBy('created_at', 'desc')
                            ->paginate(10);
         
@@ -48,17 +51,29 @@ class LocationController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'required|string',
-            'contact_person' => 'nullable|string|max:255',
-            'contact_phone' => 'nullable|string|max:20',
-            'operating_hours' => 'nullable|string',
-            'url' => 'nullable|url'
+            'url' => 'required|url',
+            'pickup_times' => 'nullable|array',
+            'pickup_times.*' => 'nullable|date_format:H:i'
         ]);
 
-        $locationData = $request->all();
-        $locationData['is_active'] = true; // Always set new locations as active
+        // Create location with only the fields that exist in the table
+        $location = Location::create([
+            'name' => $request->input('name'),
+            'url' => $request->input('url'),
+            'is_active' => true
+        ]);
 
-        Location::create($locationData);
+        // Add pickup times if provided
+        if ($request->input('pickup_times')) {
+            foreach ($request->input('pickup_times') as $time) {
+                if (!empty($time)) {
+                    $location->pickupTimes()->create([
+                        'pickup_time' => $time,
+                        'is_active' => true
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('admin.locations')->with('success', 'Lokasi berhasil ditambahkan!');
     }
@@ -138,4 +153,43 @@ class LocationController extends Controller
 
         return back()->with('success', "Lokasi {$location->name} sekarang {$status}!");
     }
+
+    /**
+     * Store a new pickup time for a location.
+     */
+    public function storePickupTime(Request $request, Location $location)
+    {
+        $request->validate([
+            'pickup_time' => 'required|date_format:H:i',
+        ]);
+
+        // Cek apakah jam pickup sudah ada untuk lokasi ini
+        $existingTime = $location->pickupTimes()
+                                ->where('pickup_time', $request->pickup_time . ':00')
+                                ->first();
+
+        if ($existingTime) {
+            return back()->with('error', 'Jam pickup sudah ada untuk lokasi ini!');
+        }
+
+        $location->pickupTimes()->create([
+            'pickup_time' => $request->pickup_time . ':00',
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Jam pickup berhasil ditambahkan!');
+    }
+
+    /**
+     * Remove pickup time.
+     */
+    public function destroyPickupTime(Location $location, $pickupTime)
+    {
+        $pickupTimeModel = $location->pickupTimes()->findOrFail($pickupTime);
+
+        $pickupTimeModel->delete();
+
+        return back()->with('success', 'Jam pickup berhasil dihapus!');
+    }
 }
+

@@ -12,8 +12,7 @@ class Location extends Model
     protected $table = 'locations';
 
     protected $fillable = [
-        'name', 'address', 'contact_person', 
-        'contact_phone', 'operating_hours', 'url', 'is_active'
+        'name', 'url', 'is_active'
     ];
 
     protected $casts = [
@@ -23,5 +22,21 @@ class Location extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'location_id');
+    }
+
+    /**
+     * Relationship dengan PickupTime
+     */
+    public function pickupTimes()
+    {
+        return $this->hasMany(PickupTime::class, 'location_id');
+    }
+
+    /**
+     * Pickup times yang aktif
+     */
+    public function activePickupTimes()
+    {
+        return $this->hasMany(PickupTime::class, 'location_id')->where('is_active', true)->orderBy('pickup_time');
     }
 }

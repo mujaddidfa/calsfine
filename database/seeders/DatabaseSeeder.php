@@ -24,5 +24,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TransactionSeeder::class,
         ]);
+
+        $this->call([
+            PickupTimeSeeder::class, // tambahkan baris ini
+        ]);
     }
 }
