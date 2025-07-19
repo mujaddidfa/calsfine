@@ -25,7 +25,10 @@ class LocationController extends Controller
      */
     public function adminIndex()
     {
-        $locations = Location::where('is_active', 1)->withCount('transactions')->paginate(10);
+        $locations = Location::where('is_active', 1)
+                           ->withCount('transactions')
+                           ->orderBy('created_at', 'desc')
+                           ->paginate(10);
         
         return view('admin.locations.index', compact('locations'));
     }
@@ -48,12 +51,11 @@ class LocationController extends Controller
             'address' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:20',
-            'operating_hours' => 'nullable|string',
-            'is_active' => 'boolean'
+            'operating_hours' => 'nullable|string'
         ]);
 
         $locationData = $request->all();
-        $locationData['is_active'] = $request->has('is_active');
+        $locationData['is_active'] = true; // Always set new locations as active
 
         Location::create($locationData);
 
@@ -87,16 +89,22 @@ class LocationController extends Controller
             'address' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:20',
-            'operating_hours' => 'nullable|string',
-            'is_active' => 'boolean'
+            'operating_hours' => 'nullable|string'
         ]);
 
-        $locationData = $request->all();
-        $locationData['is_active'] = $request->has('is_active');
+        $locationData = $request->only(['name', 'address', 'contact_person', 'contact_phone', 'operating_hours']);
+        // Don't update is_active field - it's managed by soft delete only
 
         $location->update($locationData);
 
-        return redirect()->route('admin.locations')->with('success', 'Lokasi berhasil diperbarui!');
+        // Dynamic navigation based on referrer
+        if ($request->input('referrer') === 'show') {
+            return redirect()->route('admin.locations.show', $location)
+                           ->with('success', 'Lokasi berhasil diperbarui!');
+        }
+
+        return redirect()->route('admin.locations')
+                       ->with('success', 'Lokasi berhasil diperbarui!');
     }
 
     /**
