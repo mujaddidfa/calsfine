@@ -13,13 +13,7 @@ class PickupTime extends Model
 
     protected $fillable = [
         'location_id',
-        'pickup_time',
-        'is_active'
-    ];
-
-    protected $casts = [
-        'pickup_time' => 'datetime:H:i', // Cast ke format waktu HH:MM
-        'is_active' => 'boolean'
+        'pickup_time'
     ];
 
     /**
@@ -30,13 +24,7 @@ class PickupTime extends Model
         return $this->belongsTo(Location::class, 'location_id');
     }
 
-    /**
-     * Scope untuk pickup time yang aktif
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
+
 
     /**
      * Scope untuk pickup time berdasarkan lokasi
@@ -51,6 +39,9 @@ class PickupTime extends Model
      */
     public function getFormattedTimeAttribute()
     {
-        return $this->pickup_time ? $this->pickup_time->format('H:i') : null;
+        $value = isset($this->attributes['pickup_time']) ? $this->attributes['pickup_time'] : null;
+        if (!$value) return null;
+        // Jika string (misal: '14:00:00'), ambil jam dan menit saja
+        return substr($value, 0, 5);
     }
 }

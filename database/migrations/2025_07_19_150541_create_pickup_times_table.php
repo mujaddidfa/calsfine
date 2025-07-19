@@ -15,14 +15,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('location_id');
             $table->time('pickup_time'); // Hanya menyimpan jam (HH:MM:SS)
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
 
             // Foreign key constraint
             $table->foreign('location_id')->references('id')->on('locations')->onDelete('cascade');
             
             // Index untuk performa query
-            $table->index(['location_id', 'is_active']);
+            $table->index(['location_id']);
         });
     }
 

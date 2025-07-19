@@ -46,68 +46,43 @@
                     <!-- Nama Lokasi -->
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Nama Lokasi *</label>
-                        <input type="text" id="name" name="name" value="{{ old('name', $location->name) }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('name') border-red-500 @enderror" 
+                        <input type="text" id="name" name="name" value="{{ old('name', $location->name) }}"
+                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('name') border-red-500 @enderror"
                                placeholder="Misal: Kampus IPB, Mall Bogor Junction" required>
                         @error('name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- Alamat -->
-                    <div>
-                        <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Alamat *</label>
-                        <textarea id="address" name="address" rows="3" 
-                                  class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('address') border-red-500 @enderror" 
-                                  placeholder="Alamat lengkap lokasi pickup..." required>{{ old('address', $location->address) }}</textarea>
-                        @error('address')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Kontak Person -->
-                    <div>
-                        <label for="contact_person" class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
-                        <input type="text" id="contact_person" name="contact_person" value="{{ old('contact_person', $location->contact_person) }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('contact_person') border-red-500 @enderror" 
-                               placeholder="Nama penanggung jawab lokasi">
-                        @error('contact_person')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Nomor Telepon -->
-                    <div>
-                        <label for="contact_phone" class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon</label>
-                        <input type="text" id="contact_phone" name="contact_phone" value="{{ old('contact_phone', $location->contact_phone) }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('contact_phone') border-red-500 @enderror" 
-                               placeholder="08xxxxxxxxxx">
-                        @error('contact_phone')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Jam Operasional -->
-                    <div>
-                        <label for="operating_hours" class="block text-sm font-medium text-gray-700 mb-2">Jam Operasional</label>
-                        <input type="text" id="operating_hours" name="operating_hours" value="{{ old('operating_hours', $location->operating_hours) }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('operating_hours') border-red-500 @enderror" 
-                               placeholder="Misal: Senin-Jumat 08:00-17:00">
-                        @error('operating_hours')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
                     <!-- Link Lokasi -->
                     <div>
-                        <label for="url" class="block text-sm font-medium text-gray-700 mb-2">Link Lokasi</label>
-                        <input type="url" id="url" name="url" value="{{ old('url', $location->url) }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('url') border-red-500 @enderror" 
-                               placeholder="https://maps.google.com/... atau https://goo.gl/maps/...">
+                        <label for="url" class="block text-sm font-medium text-gray-700 mb-2">Link Lokasi *</label>
+                        <input type="url" id="url" name="url" value="{{ old('url', $location->url) }}"
+                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('url') border-red-500 @enderror"
+                               placeholder="https://maps.google.com/... atau https://goo.gl/maps/..." required>
                         <p class="mt-1 text-xs text-gray-500">Link Google Maps atau platform peta lainnya untuk memudahkan customer menemukan lokasi</p>
                         @error('url')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    <!-- Jam Pickup -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Jam Pickup</label>
+                        <div class="space-y-3" id="pickupTimesEditWrapper">
+                            @foreach($location->pickupTimes as $i => $pickupTime)
+                                <div class="flex items-center space-x-2" id="pickup_time_field_edit_{{ $pickupTime->id }}">
+                                    <input type="time" name="pickup_times_existing[{{ $pickupTime->id }}]" value="{{ $pickupTime->formatted_time }}" class="border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                    <button type="button" onclick="removePickupTimeFieldEdit({{ $pickupTime->id }}, true)" class="text-red-600 hover:text-red-800 text-sm cursor-pointer">Hapus</button>
+                                </div>
+                            @endforeach
+                            <div id="additionalPickupTimesEdit"></div>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <input type="time" id="pickup_time_edit_new" name="pickup_times[]" class="border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" placeholder="Pilih jam">
+                                <button type="button" onclick="addPickupTimeFieldEdit()" class="text-primary-600 hover:text-primary-800 text-sm cursor-pointer">+ Tambah jam lain</button>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">Edit, hapus, atau tambahkan jam pickup untuk lokasi ini</p>
                     </div>
                 </div>
 
@@ -139,6 +114,35 @@
                 }, 5000);
             });
         });
+
+        // Dynamic pickup time fields for edit
+        let pickupTimeEditCounter = 0;
+        function addPickupTimeFieldEdit() {
+            pickupTimeEditCounter++;
+            const additionalContainer = document.getElementById('additionalPickupTimesEdit');
+            const newField = document.createElement('div');
+            newField.className = 'flex items-center space-x-2';
+            newField.id = `pickup_time_field_edit_new_${pickupTimeEditCounter}`;
+            newField.innerHTML = `
+                <input type="time" name="pickup_times[]" class="border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500" placeholder="Pilih jam">
+                <button type="button" onclick="removePickupTimeFieldEdit('new_${pickupTimeEditCounter}')" class="text-red-600 hover:text-red-800 text-sm cursor-pointer">Hapus</button>
+            `;
+            additionalContainer.appendChild(newField);
+        }
+        function removePickupTimeFieldEdit(id, isExisting = false) {
+            let field = document.getElementById(`pickup_time_field_edit_${id}`);
+            if (!field) field = document.getElementById(`pickup_time_field_edit_new_${id}`);
+            if (field) field.remove();
+            // Jika yang dihapus adalah pickup time existing, tambahkan input hidden agar controller tahu untuk menghapus di DB
+            if (isExisting) {
+                const form = document.querySelector('form');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'pickup_times_delete[]';
+                input.value = id;
+                form.appendChild(input);
+            }
+        }
     </script>
 </body>
 </html>

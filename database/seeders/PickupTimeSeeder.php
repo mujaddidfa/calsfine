@@ -36,7 +36,6 @@ class PickupTimeSeeder extends Seeder
                 PickupTime::create([
                     'location_id' => $location->id,
                     'pickup_time' => $time,
-                    'is_active' => true,
                 ]);
             }
         }

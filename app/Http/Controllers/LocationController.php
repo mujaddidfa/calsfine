@@ -100,19 +100,59 @@ class LocationController extends Controller
      */
     public function update(Request $request, Location $location)
     {
+
         $request->validate([
             'name' => 'required|string|max:255',
-            'address' => 'required|string',
-            'contact_person' => 'nullable|string|max:255',
-            'contact_phone' => 'nullable|string|max:20',
-            'operating_hours' => 'nullable|string',
-            'url' => 'nullable|url'
+            'url' => 'required|url',
+            'pickup_times' => 'nullable|array',
+            'pickup_times.*' => 'nullable|date_format:H:i',
+            'pickup_times_existing' => 'nullable|array',
+            'pickup_times_existing.*' => 'nullable|date_format:H:i',
+            'pickup_times_delete' => 'nullable|array',
+            'pickup_times_delete.*' => 'nullable|integer',
         ]);
 
-        $locationData = $request->only(['name', 'address', 'contact_person', 'contact_phone', 'operating_hours', 'url']);
-        // Don't update is_active field - it's managed by soft delete only
+        $location->update([
+            'name' => $request->input('name'),
+            'url' => $request->input('url'),
+        ]);
 
-        $location->update($locationData);
+        // Hapus pickup time yang diminta
+        if ($request->has('pickup_times_delete')) {
+            foreach ($request->input('pickup_times_delete') as $id) {
+                $pickupTime = $location->pickupTimes()->find($id);
+                if ($pickupTime) {
+                    $pickupTime->delete();
+                }
+            }
+        }
+
+        // Update existing pickup times
+        if ($request->has('pickup_times_existing')) {
+            foreach ($request->input('pickup_times_existing') as $id => $time) {
+                $pickupTime = $location->pickupTimes()->find($id);
+                if ($pickupTime && !empty($time)) {
+                    $pickupTime->update(['pickup_time' => $time]);
+                }
+            }
+        }
+        // Tambah pickup time baru
+        if ($request->has('pickup_times')) {
+            foreach ($request->input('pickup_times') as $time) {
+                if (!empty($time)) {
+                    // Format ke H:i:s
+                    $pickupTimeFormatted = strlen($time) === 5 ? $time . ':00' : $time;
+                    // Cek duplikat (jangan insert jika sudah ada di DB untuk lokasi ini)
+                    $exists = $location->pickupTimes()->where('pickup_time', $pickupTimeFormatted)->exists();
+                    if (!$exists) {
+                        $location->pickupTimes()->create([
+                            'pickup_time' => $pickupTimeFormatted,
+                            'is_active' => true
+                        ]);
+                    }
+                }
+            }
+        }
 
         // Dynamic navigation based on referrer
         if ($request->input('referrer') === 'show') {

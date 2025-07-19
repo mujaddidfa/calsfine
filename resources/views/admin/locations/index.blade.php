@@ -134,16 +134,15 @@
                         </button>
                     </div>
                     
-                    @if($location->pickupTimes->where('is_active', true)->count() > 0)
+                    @if($location->pickupTimes->count() > 0)
                         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                             @foreach($location->pickupTimes as $pickupTime)
-                                @if($pickupTime->is_active)
                                 <div class="pickup-time-card relative flex items-center justify-between p-3 border rounded-lg transition-all duration-200 bg-blue-50 border-blue-200 hover:bg-blue-100">
                                     <span class="text-sm font-medium text-blue-700">
-                                        {{ $pickupTime->pickup_time->format('H:i') }}
+                                        {{ $pickupTime->formatted_time }}
                                     </span>
                                     <div class="flex items-center">
-                                        <form action="{{ route('admin.locations.pickup-times.destroy', [$location, $pickupTime]) }}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus jam {{ $pickupTime->pickup_time->format('H:i') }}?')">
+                                        <form action="{{ route('admin.locations.pickup-times.destroy', [$location, $pickupTime]) }}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus jam {{ $pickupTime->formatted_time }}?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="px-2 py-1 text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded transition-colors duration-200 cursor-pointer">
@@ -152,7 +151,6 @@
                                         </form>
                                     </div>
                                 </div>
-                                @endif
                             @endforeach
                         </div>
                     @else

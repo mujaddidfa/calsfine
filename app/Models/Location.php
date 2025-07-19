@@ -35,8 +35,5 @@ class Location extends Model
     /**
      * Pickup times yang aktif
      */
-    public function activePickupTimes()
-    {
-        return $this->hasMany(PickupTime::class, 'location_id')->where('is_active', true)->orderBy('pickup_time');
-    }
+
 }
