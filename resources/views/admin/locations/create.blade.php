@@ -1,19 +1,5 @@
 <!DOCTYPE html>
-<html lang="        <!-- Form -->
-        <div class="bg-white shadow rounded-lg p-6">
-            <!-- Display All Errors for Debugging -->
-            @if ($errors->any())
-                <div class="mb-6 bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    <p class="font-medium">Terjadi error saat menyimpan:</p>
-                    <ul class="mt-2 list-disc list-inside">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('admin.locations.store') }}" method="POST">>
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

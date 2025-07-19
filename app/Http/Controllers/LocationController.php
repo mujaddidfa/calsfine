@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Models\Location;
 
 class LocationController extends Controller
@@ -68,8 +69,7 @@ class LocationController extends Controller
             foreach ($request->input('pickup_times') as $time) {
                 if (!empty($time)) {
                     $location->pickupTimes()->create([
-                        'pickup_time' => $time,
-                        'is_active' => true
+                        'pickup_time' => $time
                     ]);
                 }
             }
@@ -117,6 +117,9 @@ class LocationController extends Controller
             'url' => $request->input('url'),
         ]);
 
+        // Debug: log the request payload to storage/logs/laravel.log
+        Log::info('Location update request', $request->all());
+
         // Hapus pickup time yang diminta
         if ($request->has('pickup_times_delete')) {
             foreach ($request->input('pickup_times_delete') as $id) {
@@ -136,6 +139,7 @@ class LocationController extends Controller
                 }
             }
         }
+
         // Tambah pickup time baru
         if ($request->has('pickup_times')) {
             foreach ($request->input('pickup_times') as $time) {
@@ -146,8 +150,7 @@ class LocationController extends Controller
                     $exists = $location->pickupTimes()->where('pickup_time', $pickupTimeFormatted)->exists();
                     if (!$exists) {
                         $location->pickupTimes()->create([
-                            'pickup_time' => $pickupTimeFormatted,
-                            'is_active' => true
+                            'pickup_time' => $pickupTimeFormatted
                         ]);
                     }
                 }
@@ -174,61 +177,13 @@ class LocationController extends Controller
             return back()->with('error', 'Lokasi tidak dapat dihapus karena masih memiliki transaksi!');
         }
 
+        // Hapus semua pickup time terkait lokasi ini
+        $location->pickupTimes()->delete();
+
         // Soft delete by setting is_active to false
         $location->update(['is_active' => false]);
 
-        return redirect()->route('admin.locations')->with('success', 'Lokasi berhasil dihapus!');
-    }
-
-    /**
-     * Toggle location status.
-     */
-    public function toggleStatus(Location $location)
-    {
-        $location->update([
-            'is_active' => !$location->is_active
-        ]);
-
-        $status = $location->is_active ? 'aktif' : 'non-aktif';
-
-        return back()->with('success', "Lokasi {$location->name} sekarang {$status}!");
-    }
-
-    /**
-     * Store a new pickup time for a location.
-     */
-    public function storePickupTime(Request $request, Location $location)
-    {
-        $request->validate([
-            'pickup_time' => 'required|date_format:H:i',
-        ]);
-
-        // Cek apakah jam pickup sudah ada untuk lokasi ini
-        $existingTime = $location->pickupTimes()
-                                ->where('pickup_time', $request->pickup_time . ':00')
-                                ->first();
-
-        if ($existingTime) {
-            return back()->with('error', 'Jam pickup sudah ada untuk lokasi ini!');
-        }
-
-        $location->pickupTimes()->create([
-            'pickup_time' => $request->pickup_time . ':00',
-        ]);
-
-        return back()->with('success', 'Jam pickup berhasil ditambahkan!');
-    }
-
-    /**
-     * Remove pickup time.
-     */
-    public function destroyPickupTime(Location $location, $pickupTime)
-    {
-        $pickupTimeModel = $location->pickupTimes()->findOrFail($pickupTime);
-
-        $pickupTimeModel->delete();
-
-        return back()->with('success', 'Jam pickup berhasil dihapus!');
+        return redirect()->route('admin.locations')->with('success', 'Lokasi dan semua jam pickup terkait berhasil dihapus!');
     }
 }
 

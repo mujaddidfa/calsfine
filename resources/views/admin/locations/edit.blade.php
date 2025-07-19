@@ -37,7 +37,7 @@
 
         <!-- Form -->
         <div class="bg-white shadow rounded-lg p-6">
-            <form action="{{ route('admin.locations.update', $location) }}" method="POST">
+            <form id="editLocationForm" action="{{ route('admin.locations.update', $location) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="referrer" value="{{ request('referrer') }}">
@@ -135,7 +135,7 @@
             if (field) field.remove();
             // Jika yang dihapus adalah pickup time existing, tambahkan input hidden agar controller tahu untuk menghapus di DB
             if (isExisting) {
-                const form = document.querySelector('form');
+                const form = document.getElementById('editLocationForm');
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'pickup_times_delete[]';

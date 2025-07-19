@@ -103,18 +103,4 @@ class CategoryController extends Controller
 
         return redirect()->route('admin.categories')->with('success', 'Kategori berhasil dihapus!');
     }
-
-    /**
-     * Toggle category status.
-     */
-    public function toggleStatus(Category $category)
-    {
-        $category->update([
-            'is_active' => !$category->is_active
-        ]);
-
-        $status = $category->is_active ? 'aktif' : 'non-aktif';
-
-        return back()->with('success', "Kategori {$category->name} sekarang {$status}!");
-    }
 }
