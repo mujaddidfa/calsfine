@@ -41,18 +41,18 @@
                             'paid' => 'bg-blue-100 text-blue-800',
                             'completed' => 'bg-green-100 text-green-800',
                             'cancelled' => 'bg-red-100 text-red-800',
-                            'wasted' => 'bg-gray-200 text-gray-600',
+                            'wasted' => 'bg-red-100 text-red-800',
                         ];
                     @endphp
                     <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold {{ $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800' }}">
                         @if($order->status === 'pending')
                             Menunggu Pembayaran
                         @elseif($order->status === 'paid')
-                            Sudah Dibayar
+                            Menunggu Pickup
                         @elseif($order->status === 'completed')
-                            Diambil
+                            Sudah Diambil
                         @elseif($order->status === 'cancelled')
-                            Dibatalkan
+                            Tidak Diambil
                         @elseif($order->status === 'wasted')
                             Tidak Diambil
                         @else
