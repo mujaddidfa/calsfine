@@ -260,6 +260,10 @@
                                         </span>
                                     @elseif($order->status === 'cancelled')
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            Dibatalkan
+                                        </span>
+                                    @elseif($order->status === 'wasted')
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                                             Tidak Diambil
                                         </span>
                                     @endif
@@ -343,6 +347,10 @@
                                     @elseif($order->status === 'cancelled')
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                                             Dibatalkan
+                                        </span>
+                                    @elseif($order->status === 'wasted')
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            Tidak Diambil
                                         </span>
                                     @endif
                                 </td>
