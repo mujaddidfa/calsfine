@@ -69,7 +69,7 @@ class OrderController extends Controller
                 'email' => $validated['email'] ?? null,
                 'wa_number' => $validated['wa_number'],
                 'note' => $validated['note'] ?? null,
-                'order_date' => now(),
+                'order_date' => now()->setTimezone('Asia/Jakarta'),
                 'pick_up_date' => $pickupDateTime,
                 'id_location' => $validated['id_location'],
                 'total_price' => $total,
