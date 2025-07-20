@@ -261,7 +261,7 @@
   
         <!-- Link ke Semua Menu -->
         <div class="text-center">
-          <a href="#menu-lainnya" class="text-primary-500 font-medium hover:underline">Lihat Menu Lainnya..</a>
+          <a href="{{ route('order') }}" class="text-primary-500 font-medium hover:underline">Lihat Menu Lainnya..</a>
         </div>
       </div>
     </section>
@@ -280,7 +280,7 @@
 
       <!-- Tengah: CTA -->
       <div class="flex justify-center">
-        <a href="#pesan" class="border border-primary-500 text-primary-500 font-medium px-6 py-2 rounded hover:bg-primary-500 hover:text-white transition">
+        <a href="{{ route('order') }}" class="border border-primary-500 text-primary-500 font-medium px-6 py-2 rounded hover:bg-primary-500 hover:text-white transition">
           Pesan Sekarang
         </a>
       </div>
