@@ -139,19 +139,19 @@
                             @enderror
                         </div>
 
-                        <!-- Current Image (if exists) -->
-                        @if($menu->image)
-                        <div>
+                        <!-- Current Image or Preview -->
+                        <div id="image-preview-container" style="display: {{ $menu->image ? 'block' : 'none' }};">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <span id="current-image-title">Gambar Menu</span>
+                                <span id="current-image-title">{{ $menu->image ? 'Gambar Menu' : 'Preview Gambar' }}</span>
                             </label>
                             <div class="flex items-center space-x-4">
                                 <div class="relative">
-                                    <img id="current-img" src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}" class="h-20 w-20 object-cover rounded-lg border">
+                                    <img id="current-img" src="{{ $menu->image ? asset('storage/' . $menu->image) : '' }}" alt="{{ $menu->name }}" class="h-20 w-20 object-cover rounded-lg border {{ $menu->image ? 'border-gray-300' : 'border-green-500' }}">
                                 </div>
                                 <div>
-                                    <p id="current-image-desc" class="text-sm text-gray-600">Gambar menu yang sedang aktif</p>
+                                    <p id="current-image-desc" class="text-sm text-gray-600">{{ $menu->image ? 'Gambar menu yang sedang aktif' : 'Preview gambar yang akan diupload' }}</p>
                                     <div class="mt-2 flex flex-wrap gap-2">
+                                        @if($menu->image)
                                         <button type="button" onclick="toggleRemoveImage()" id="remove-btn" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors duration-200 inline-flex items-center">
                                             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -164,15 +164,15 @@
                                             </svg>
                                             Batal Hapus
                                         </button>
+                                        @endif
                                         <button type="button" onclick="resetToOriginal()" id="reset-btn" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors duration-200 ml-2 hidden">
-                                            Kembalikan Asli
+                                            {{ $menu->image ? 'Kembalikan Asli' : 'Hapus Preview' }}
                                         </button>
                                         <input type="hidden" name="remove_image" id="remove_image_input" value="0">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        @endif
 
                         <!-- Upload Gambar Baru -->
                         <div>
@@ -226,13 +226,18 @@
 
     <script>
         // Store original image source
-        const originalImageSrc = "{{ asset('storage/' . $menu->image) }}";
+        const originalImageSrc = "{{ $menu->image ? asset('storage/' . $menu->image) : '' }}";
+        const hasOriginalImage = {{ $menu->image ? 'true' : 'false' }};
         let hasNewImage = false;
         
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    // Show preview container if hidden
+                    const previewContainer = document.getElementById('image-preview-container');
+                    previewContainer.style.display = 'block';
+                    
                     // Update current image with new preview
                     const currentImg = document.getElementById('current-img');
                     const currentImageTitle = document.getElementById('current-image-title');
@@ -243,14 +248,20 @@
                         // Update current image to show new image
                         currentImg.src = e.target.result;
                         currentImg.classList.add('border-green-500');
-                        currentImg.classList.remove('border-gray-300');
+                        currentImg.classList.remove('border-gray-300', 'border-red-500');
                         
                         // Update labels
-                        currentImageTitle.textContent = 'Preview Gambar Baru';
-                        currentImageDesc.innerHTML = '<span class="text-green-600 font-medium">Gambar baru siap untuk disimpan</span>';
+                        if (hasOriginalImage) {
+                            currentImageTitle.textContent = 'Preview Gambar Baru';
+                            currentImageDesc.innerHTML = '<span class="text-green-600 font-medium">Gambar baru siap untuk disimpan</span>';
+                        } else {
+                            currentImageTitle.textContent = 'Preview Gambar';
+                            currentImageDesc.innerHTML = '<span class="text-green-600 font-medium">Gambar siap untuk diupload</span>';
+                        }
                         
                         // Show reset button
                         resetBtn.classList.remove('hidden');
+                        resetBtn.textContent = hasOriginalImage ? 'Kembalikan Asli' : 'Hapus Preview';
                         
                         hasNewImage = true;
                     }
@@ -269,9 +280,10 @@
             const currentImageTitle = document.getElementById('current-image-title');
             const currentImageDesc = document.getElementById('current-image-desc');
             const resetBtn = document.getElementById('reset-btn');
+            const previewContainer = document.getElementById('image-preview-container');
             const input = document.getElementById('image');
             
-            if (currentImg && originalImageSrc) {
+            if (hasOriginalImage && originalImageSrc) {
                 // Reset to original image
                 currentImg.src = originalImageSrc;
                 currentImg.classList.remove('border-green-500', 'border-red-500');
@@ -285,12 +297,15 @@
                 
                 // Hide reset button
                 resetBtn.classList.add('hidden');
-                
-                // Clear file input
-                input.value = '';
-                
-                hasNewImage = false;
+            } else {
+                // Hide preview container if no original image
+                previewContainer.style.display = 'none';
             }
+            
+            // Clear file input
+            input.value = '';
+            
+            hasNewImage = false;
         }
 
         function toggleRemoveImage() {
