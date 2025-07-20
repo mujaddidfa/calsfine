@@ -32,14 +32,13 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:100',
-            'email' => 'nullable|email|max:50',
             'wa_number' => 'required|string|max:20',
             'note' => 'nullable|string',
             'pick_up_date' => 'required|date',
             'pickup_time' => 'required|string', // Format HH:MM
-            'id_location' => 'required|exists:locations,id',
+            'location_id' => 'required|exists:locations,id',
             'items' => 'required|array|min:1',
-            'items.*.id_menu' => 'required|exists:menus,id',
+            'items.*.menu_id' => 'required|exists:menus,id',
             'items.*.qty' => 'required|integer|min:1',
         ]);
 
@@ -49,12 +48,12 @@ class OrderController extends Controller
             $items = [];
 
             foreach ($validated['items'] as $item) {
-                $menu = Menu::findOrFail($item['id_menu']);
+                $menu = Menu::findOrFail($item['menu_id']);
                 $subtotal = $menu->price * $item['qty'];
                 $total += $subtotal;
 
                 $items[] = [
-                    'id_menu' => $menu->id,
+                    'menu_id' => $menu->id,
                     'qty' => $item['qty'],
                     'price_per_item' => $menu->price,
                     'total_price' => $subtotal,
@@ -66,18 +65,17 @@ class OrderController extends Controller
 
             $transaction = Transaction::create([
                 'customer_name' => $validated['customer_name'],
-                'email' => $validated['email'] ?? null,
                 'wa_number' => $validated['wa_number'],
                 'note' => $validated['note'] ?? null,
                 'order_date' => now()->setTimezone('Asia/Jakarta'),
                 'pick_up_date' => $pickupDateTime,
-                'id_location' => $validated['id_location'],
+                'location_id' => $validated['location_id'],
                 'total_price' => $total,
                 'status' => 'pending',
             ]);
 
             foreach ($items as $item) {
-                $item['id_transaction'] = $transaction->id;
+                $item['transaction_id'] = $transaction->id;
                 TransactionItem::create($item);
             }
 

@@ -791,12 +791,12 @@
             const orderData = {
                 customer_name: formData.get("customer_name"),
                 wa_number: formData.get("wa_number"),
-                id_location: formData.get("id_location"),
+                location_id: formData.get("id_location"),
                 pickup_time: formData.get("pickup_time"),
                 pick_up_date: formData.get("pick_up_date"),
                 note: formData.get("note") || "",
                 items: cart.map(item => ({
-                    id_menu: item.id,
+                    menu_id: item.id,
                     qty: item.quantity,
                 })),
             };
