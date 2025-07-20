@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\Menu;
+use App\Models\Location;
+use App\Models\PickupTime;
 
 class OrderController extends Controller
 {
@@ -17,7 +19,13 @@ class OrderController extends Controller
             ->with('category')
             ->get();
 
-        return view('order', compact('menus'));
+        // Ambil semua lokasi (hapus filter is_active untuk debugging)
+        $locations = Location::all();
+
+        // Ambil semua pickup times dengan relasi location
+        $pickupTimes = PickupTime::with('location')->get();
+
+        return view('order', compact('menus', 'locations', 'pickupTimes'));
     }
 
     public function store(Request $request)
@@ -28,6 +36,7 @@ class OrderController extends Controller
             'wa_number' => 'required|string|max:20',
             'note' => 'nullable|string',
             'pick_up_date' => 'required|date',
+            'pickup_time' => 'required|string', // Format HH:MM
             'id_location' => 'required|exists:locations,id',
             'items' => 'required|array|min:1',
             'items.*.id_menu' => 'required|exists:menus,id',
@@ -52,13 +61,16 @@ class OrderController extends Controller
                 ];
             }
 
+            // Gabungkan tanggal dan waktu pickup
+            $pickupDateTime = $validated['pick_up_date'] . ' ' . $validated['pickup_time'] . ':00';
+
             $transaction = Transaction::create([
                 'customer_name' => $validated['customer_name'],
                 'email' => $validated['email'] ?? null,
                 'wa_number' => $validated['wa_number'],
                 'note' => $validated['note'] ?? null,
                 'order_date' => now(),
-                'pick_up_date' => $validated['pick_up_date'],
+                'pick_up_date' => $pickupDateTime,
                 'id_location' => $validated['id_location'],
                 'total_price' => $total,
                 'status' => 'pending',

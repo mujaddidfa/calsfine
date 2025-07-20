@@ -10,21 +10,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="flex flex-col min-h-screen">
-    <header class="sticky top-0 z-50 bg-white border-primary-500 border-b shadow-sm">
-        <div class="flex justify-between items-center px-4 py-3 max-w-screen-xl mx-auto">
-            
-            <!-- Tombol Kembali -->
-            <a href="{{ route('home') }}" class="flex items-center text-black text-base font-medium hover:underline">
-                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-                Kembali
-            </a>
-
-            <!-- Logo -->
-            <a href="{{ route('home') }}" class="hover:opacity-80 transition">
-                <img src="{{ asset('images/logo.png') }}" alt="CalsFine" class="h-8 sm:h-10">
-            </a>
+    <!-- Order Page Header -->
+    <header class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Back Button and Logo -->
+                <div class="flex items-center">
+                    <!-- Back Button -->
+                    <a href="{{ route('home') }}" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50 mr-4">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Kembali
+                        </span>
+                    </a>
+                </div>
+                
+                <!-- Logo Center -->
+                <div class="flex items-center">
+                    <a href="{{ route('home') }}" class="hover:opacity-80 transition">
+                        <img src="{{ asset('images/logo.png') }}" alt="CalsFine Logo" class="h-8 w-auto">
+                    </a>
+                </div>
+            </div>
         </div>
     </header>
     <section class="bg-neutral-50 py-12 min-h-screen">
@@ -223,6 +232,20 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label for="pickup-time" class="block text-sm font-medium text-gray-700 mb-1">
+                            Jam Pickup <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="pickup-time" 
+                            name="pickup_time"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            required>
+                            <option value="">Pilih jam pickup...</option>
+                            <!-- Options akan diisi oleh JavaScript -->
+                        </select>
+                    </div>
+
                     <!-- Hidden pickup date field (automatically set to tomorrow) -->
                     <input type="hidden" id="pickup-date" name="pick_up_date">
 
@@ -261,7 +284,7 @@
                         </button>
                         <button 
                             type="button"
-                            onclick="showOrderPreview()"
+                            onclick="updatePreviewData(); showOrderPreview();"
                             class="flex-1 bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition font-medium">
                             Pratinjau Pesanan
                         </button>
@@ -303,6 +326,10 @@
                         <div class="flex justify-between">
                             <span class="text-sm text-gray-600">Lokasi Pickup:</span>
                             <span class="text-sm font-medium" id="preview-pickup-location">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Jam Pickup:</span>
+                            <span class="text-sm font-medium" id="preview-pickup-time">-</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-sm text-gray-600">Tanggal Pickup:</span>
@@ -380,5 +407,129 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Data locations dan pickup times dari backend
+        const locations = @json($locations ?? []);
+        const pickupTimes = @json($pickupTimes ?? []);
+
+        // Populate location options
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationSelect = document.getElementById('pickup-location');
+            const timeSelect = document.getElementById('pickup-time');
+
+            // Populate locations
+            if (locationSelect && locations && locations.length > 0) {
+                locations.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location.id;
+                    option.textContent = location.name;
+                    locationSelect.appendChild(option);
+                });
+            }
+
+            // Handle location change to filter pickup times
+            if (locationSelect && timeSelect) {
+                locationSelect.addEventListener('change', function() {
+                    const selectedLocationId = parseInt(this.value);
+                    
+                    // Clear existing time options
+                    timeSelect.innerHTML = '<option value="">Pilih jam pickup...</option>';
+                    
+                    if (selectedLocationId && pickupTimes && pickupTimes.length > 0) {
+                        // Filter pickup times for selected location
+                        const filteredTimes = pickupTimes.filter(time => 
+                            parseInt(time.location_id) === selectedLocationId
+                        );
+                        
+                        // Populate time options
+                        filteredTimes.forEach(time => {
+                            const option = document.createElement('option');
+                            option.value = time.pickup_time.substring(0, 5); // Format HH:MM sebagai value
+                            option.textContent = time.pickup_time.substring(0, 5); // Format HH:MM
+                            timeSelect.appendChild(option);
+                        });
+                    }
+                });
+            }
+
+            // Set pickup date to tomorrow
+            const pickupDateInput = document.getElementById('pickup-date');
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const formattedDate = tomorrow.toISOString().split('T')[0];
+            
+            if (pickupDateInput) {
+                pickupDateInput.value = formattedDate;
+            }
+
+            // Update pickup date display
+            const pickupDateDisplay = document.getElementById('pickup-date-display');
+            if (pickupDateDisplay) {
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                };
+                pickupDateDisplay.textContent = tomorrow.toLocaleDateString('id-ID', options);
+            }
+
+            setTimeout(() => {
+                testPickupTime();
+            }, 2000);
+        });
+
+        // Update preview functions to include pickup time
+        function updatePreviewData() {
+            const customerName = document.getElementById('customer-name').value;
+            const customerPhone = document.getElementById('customer-phone').value;
+            const locationSelect = document.getElementById('pickup-location');
+            const timeSelect = document.getElementById('pickup-time');
+            const pickupDate = document.getElementById('pickup-date-display').textContent;
+            const notes = document.getElementById('order-notes').value;
+
+            // Update preview fields
+            document.getElementById('preview-customer-name').textContent = customerName || '-';
+            document.getElementById('preview-customer-phone').textContent = customerPhone || '-';
+            document.getElementById('preview-pickup-location').textContent = 
+                locationSelect.selectedOptions[0]?.textContent || '-';
+            
+            const selectedTime = timeSelect ? timeSelect.value : '';
+            
+            const previewTimeElement = document.getElementById('preview-pickup-time');
+
+            if (previewTimeElement) {
+                previewTimeElement.textContent = selectedTime || '-';
+            } else {
+                console.error('Preview time element not found!');
+            }
+            
+            document.getElementById('preview-pickup-date').textContent = pickupDate || '-';
+
+            // Handle notes
+            const notesContainer = document.getElementById('preview-notes-container');
+            const previewNotes = document.getElementById('preview-notes');
+            if (notes.trim()) {
+                notesContainer.classList.remove('hidden');
+                previewNotes.textContent = notes;
+            } else {
+                notesContainer.classList.add('hidden');
+            }
+        }
+
+        // Override existing showOrderPreview function
+        function showOrderPreview() {
+            // Show modal
+            document.getElementById('checkout-modal').classList.add('hidden');
+            document.getElementById('order-preview-modal').classList.remove('hidden');
+            document.getElementById('order-preview-modal').classList.add('flex');
+            
+            // Verify after modal is shown
+            setTimeout(() => {
+                verifyPickupTimeInPreview();
+            }, 200);
+        }
+    </script>
 </body>
 </html>

@@ -9,45 +9,132 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="flex flex-col min-h-screen">
-  <nav class="bg-white border-primary-500 border-b shadow-sm sticky top-0 z-50">
-    <div class="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
-      <!-- Logo & Tagline -->
-      <div class="flex items-center space-x-2">
-        <a href="{{ route('home') }}" class="hover:opacity-80 transition">
-          <img src="{{ asset('images/logo.png') }}" alt="CalsFine" class="h-10" />
-        </a>
-      </div>
+  <!-- Main Navigation -->
+  <nav class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <!-- Logo and Desktop Navigation -->
+            <div class="flex items-center">
+                <div class="flex items-center mr-8">
+                    <a href="{{ route('home') }}" class="hover:opacity-80 transition">
+                        <img src="{{ asset('images/logo.png') }}" alt="CalsFine Logo" class="h-8 w-auto mr-3">
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#beranda" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            Beranda
+                        </span>
+                    </a>
+                    
+                    <a href="#tentang" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Tentang
+                        </span>
+                    </a>
+                    
+                    <a href="#cara-pesan" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            Cara Pesan
+                        </span>
+                    </a>
+                    
+                    <a href="#produk" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            Produk
+                        </span>
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Desktop Order Button -->
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="{{ route('order') }}" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0L17 13"></path>
+                    </svg>
+                    Pesan Sekarang
+                </a>
+            </div>
 
-      <!-- Nav Links -->
-      <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-800">
-        <a href="#beranda" class="hover:text-primary-500">Beranda</a>
-        <a href="#tentang" class="hover:text-primary-500">Tentang</a>
-        <a href="#cara-pesan" class="hover:text-primary-500">Cara Pesan</a>
-        <a href="#produk" class="hover:text-primary-500">Produk</a>
-        <a href="{{ route('order') }}" class="border border-primary-500 text-primary-500 px-4 py-1 rounded hover:bg-primary-500 hover:text-white transition">
-          Pesan
-        </a>
-      </div>
+            <!-- Mobile hamburger menu button -->
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-button" type="button" class="text-gray-600 hover:text-primary-600 focus:outline-none focus:text-primary-600 p-2" aria-label="Menu">
+                    <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
 
-      <!-- Burger button (for mobile) -->
-      <div class="md:hidden">
-        <button data-collapse-toggle="mobile-nav" type="button" class="text-gray-700">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-    </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200 bg-gray-50">
+                <!-- Mobile Navigation Links -->
+                <a href="#beranda" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-100">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Beranda
+                    </span>
+                </a>
+                
+                <a href="#tentang" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-100">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Tentang
+                    </span>
+                </a>
+                
+                <a href="#cara-pesan" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-100">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        Cara Pesan
+                    </span>
+                </a>
+                
+                <a href="#produk" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-100">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        Produk
+                    </span>
+                </a>
 
-    <!-- Mobile Menu -->
-    <div id="mobile-nav" class="hidden md:hidden px-4 pb-4 space-y-2">
-      <a href="#beranda" class="block text-sm text-gray-800">Beranda</a>
-      <a href="#tentang" class="block text-sm text-gray-800">Tentang</a>
-      <a href="#cara-pesan" class="block text-sm text-gray-800">Cara Pesan</a>
-      <a href="#produk" class="block text-sm text-gray-800">Produk</a>
-      <a href="{{ route('order') }}" class="block border border-primary-500 text-primary-500 px-4 py-1 rounded w-fit">Pesan</a>
+                <!-- Mobile Order Button -->
+                <div class="pt-4 border-t border-gray-300 mt-4">
+                    <a href="{{ route('order') }}" class="w-full bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0L17 13"></path>
+                        </svg>
+                        Pesan Sekarang
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
   </nav>
   
@@ -211,5 +298,77 @@
   <div class="bg-primary-800 py-4">
     <p class="text-center text-xs text-white">© 2025 All rights reserved</p>
   </div>
+
+  <script>
+    // Mobile menu toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+
+        if (mobileMenuButton && mobileMenu && menuIcon && closeIcon) {
+            mobileMenuButton.addEventListener('click', function() {
+                const isMenuOpen = !mobileMenu.classList.contains('hidden');
+                
+                if (isMenuOpen) {
+                    // Close menu
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.remove('hidden');
+                    closeIcon.classList.add('hidden');
+                } else {
+                    // Open menu
+                    mobileMenu.classList.remove('hidden');
+                    menuIcon.classList.add('hidden');
+                    closeIcon.classList.remove('hidden');
+                }
+            });
+
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(event) {
+                const isClickInsideNav = event.target.closest('nav');
+                const isMenuOpen = !mobileMenu.classList.contains('hidden');
+                
+                if (!isClickInsideNav && isMenuOpen) {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.remove('hidden');
+                    closeIcon.classList.add('hidden');
+                }
+            });
+
+            // Close mobile menu when window is resized to desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) { // md breakpoint
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.remove('hidden');
+                    closeIcon.classList.add('hidden');
+                }
+            });
+
+            // Smooth scroll for anchor links
+            const navLinks = document.querySelectorAll('nav a[href^="#"]');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        e.preventDefault();
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                        
+                        // Close mobile menu if open
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                            menuIcon.classList.remove('hidden');
+                            closeIcon.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        }
+    });
+  </script>
 </body>
 </html>
