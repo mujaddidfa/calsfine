@@ -320,6 +320,12 @@ function showOrderPreview() {
     document.getElementById("preview-pickup-location").textContent =
         selectedLocation;
 
+    // Get pickup time
+    const timeSelect = document.getElementById("pickup-time");
+    const selectedTime = timeSelect ? timeSelect.value : "";
+    document.getElementById("preview-pickup-time").textContent =
+        selectedTime || "-";
+
     // Get formatted pickup date
     const pickupDateDisplay = document.getElementById(
         "pickup-date-display"
@@ -451,6 +457,7 @@ async function submitOrder() {
         customer_name: formData.get("customer_name"),
         wa_number: formData.get("wa_number"),
         id_location: formData.get("id_location"),
+        pickup_time: formData.get("pickup_time"),
         pick_up_date: formData.get("pick_up_date"),
         note: formData.get("note") || "",
         items: cart.map((item) => ({
