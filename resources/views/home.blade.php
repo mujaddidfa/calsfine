@@ -50,12 +50,12 @@
                         </span>
                     </a>
                     
-                    <a href="#produk" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">
+                    <a href="#menu" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">
                         <span class="flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                             </svg>
-                            Produk
+                            Menu
                         </span>
                     </a>
                 </nav>
@@ -115,12 +115,12 @@
                     </span>
                 </a>
                 
-                <a href="#produk" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-100">
+                <a href="#menu" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-100">
                     <span class="flex items-center">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
-                        Produk
+                        Menu
                     </span>
                 </a>
 
@@ -158,8 +158,8 @@
             <a href="{{ route('order') }}" class="bg-primary-500 text-white px-6 py-2 rounded hover:bg-primary-600 transition">
               Pesan Sekarang
             </a>
-            <a href="#produk" class="border border-primary-500 text-primary-500 px-6 py-2 rounded hover:bg-primary-500 hover:text-white transition">
-              Lihat produk
+            <a href="#menu" class="border border-primary-500 text-primary-500 px-6 py-2 rounded hover:bg-primary-500 hover:text-white transition">
+              Lihat Menu
             </a>
           </div>
         </div>
@@ -226,11 +226,11 @@
       </div>
     </section>
   
-    <section class="py-20 bg-white" id="produk">
+    <section class="py-20 bg-white" id="menu">
       <div class="max-w-7xl mx-auto px-4">
         <!-- Judul -->
-        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">Produk Favorit</h2>
-  
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">Menu Favorit</h2>
+
         <!-- Grid Menu -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-6">
           @forelse($featuredMenus as $menu)
@@ -239,7 +239,7 @@
               <img src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}" class="w-full h-40 object-cover rounded mb-3">
             @else
               <div class="w-full h-40 bg-gray-200 rounded mb-3 flex items-center justify-center">
-                <span class="text-gray-500 text-sm">Foto Produk</span>
+                <span class="text-gray-500 text-sm">Foto Menu</span>
               </div>
             @endif
             <h3 class="font-semibold text-gray-900 mb-1">{{ $menu->name }}</h3>
@@ -254,15 +254,17 @@
           @empty
           <!-- Fallback jika tidak ada data -->
           <div class="col-span-full text-center py-8">
-            <p class="text-gray-500">Belum ada produk tersedia</p>
+            <p class="text-gray-500">Belum ada menu tersedia</p>
           </div>
           @endforelse
         </div>
   
         <!-- Link ke Semua Menu -->
+        @if($featuredMenus->count())
         <div class="text-center">
           <a href="{{ route('order') }}" class="text-primary-500 font-medium hover:underline">Lihat Menu Lainnya..</a>
         </div>
+        @endif
       </div>
     </section>
   </main>
@@ -288,8 +290,8 @@
       <!-- Kanan: Navigasi -->
       <div class="text-sm text-gray-800 text-right space-y-2">
         <p><a href="#tentang" class="hover:underline">Tentang Kami</a></p>
-        <p><a href="#produk" class="hover:underline">Produk</a></p>
-        <p><a href="#cara-pesan" class="hover:underline">Cara pesan</a></p>
+        <p><a href="#menu" class="hover:underline">Menu</a></p>
+        <p><a href="#cara-pesan" class="hover:underline">Cara Pesan</a></p>
       </div>
     </div>
   </footer>
