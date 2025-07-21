@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard Admin - CalsFine</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 </head>
 <body class="bg-gray-50 font-['Poppins']">
     
@@ -30,7 +33,7 @@
         <div class="mb-8">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-3xl font-bold text-gray-900">Dashboard CalsFine</h2>
-                <button type="button" class="inline-flex items-center px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white text-base font-semibold rounded-lg shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                <button type="button" onclick="openQrScanner()" class="inline-flex items-center px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white text-base font-semibold rounded-lg shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                     <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <rect x="3" y="3" width="7" height="7" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <rect x="14" y="3" width="7" height="7" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -308,7 +311,116 @@
         </div>
     </div>
 
+    <!-- QR Scanner Modal -->
+    <div id="qr-scanner-modal" class="fixed inset-0 bg-neutral-900/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <!-- Modal Header -->
+            <div class="bg-primary-500 text-white p-4 rounded-t-lg">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold">📱 Scan QR Code Pickup</h2>
+                    <button onclick="closeQrScanner()" class="text-white hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6">
+                <!-- Scanner Method Toggle -->
+                <div class="flex mb-4 bg-gray-100 rounded-lg p-1">
+                    <button id="camera-tab" onclick="switchScannerMode('camera')" 
+                            class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary-500 text-white">
+                        📷 Kamera
+                    </button>
+                    <button id="manual-tab" onclick="switchScannerMode('manual')" 
+                            class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800">
+                        ⌨️ Manual
+                    </button>
+                </div>
+
+                <!-- Camera Scanner -->
+                <div id="camera-scanner" class="scanner-mode">
+                    <div class="mb-4">
+                        <div id="qr-reader" class="w-full bg-black rounded-lg overflow-hidden" style="min-height: 250px;">
+                            <div class="flex items-center justify-center h-64 text-white">
+                                <div class="text-center">
+                                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <p class="text-sm">Klik "Mulai Scan" untuk mengaktifkan kamera</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3 mb-4">
+                        <button id="start-scan-btn" onclick="startQrScanner()" 
+                                class="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition font-semibold">
+                            📷 Mulai Scan
+                        </button>
+                        <button id="stop-scan-btn" onclick="stopQrScanner()" 
+                                class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition font-semibold hidden">
+                            🛑 Stop Scan
+                        </button>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-sm text-blue-700">
+                            <strong>Petunjuk scan:</strong><br>
+                            1. Izinkan akses kamera saat diminta<br>
+                            2. Arahkan kamera ke QR Code customer<br>
+                            3. QR Code akan otomatis terbaca dan diproses
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Manual Input -->
+                <div id="manual-scanner" class="scanner-mode hidden">
+                    <div class="mb-4">
+                        <label for="qr-code-input" class="block text-sm font-medium text-gray-700 mb-2">
+                            Masukkan ID Pesanan atau URL QR Code:
+                        </label>
+                        <input type="text" id="qr-code-input" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
+                               placeholder="Contoh: 12345 atau paste URL dari QR code">
+                    </div>
+                    
+                    <div class="flex space-x-3 mb-4">
+                        <button onclick="processPickup()" 
+                                class="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition font-semibold">
+                            ✅ Proses Pickup
+                        </button>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-sm text-blue-700">
+                            <strong>Cara menggunakan:</strong><br>
+                            1. Ketik ID pesanan secara manual, atau<br>
+                            2. Copy-paste URL dari QR Code customer<br>
+                            3. Klik "Proses Pickup" untuk menyelesaikan pesanan
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Close Button -->
+                <div class="mt-4">
+                    <button onclick="closeQrScanner()" 
+                            class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition font-semibold">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // QR Scanner variables
+        let html5QrCode = null;
+        let currentScannerMode = 'camera';
+        
         // Tab switching function
         function switchTab(tab) {
             // Hide all tab contents
@@ -330,6 +442,222 @@
             activeButton.classList.add('active', 'border-primary-500', 'text-primary-600');
             activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300');
         }
+        
+        // Scanner mode switching
+        function switchScannerMode(mode) {
+            currentScannerMode = mode;
+            
+            // Update tab appearance
+            const cameraTab = document.getElementById('camera-tab');
+            const manualTab = document.getElementById('manual-tab');
+            
+            if (mode === 'camera') {
+                cameraTab.classList.add('bg-primary-500', 'text-white');
+                cameraTab.classList.remove('text-gray-600');
+                manualTab.classList.remove('bg-primary-500', 'text-white');
+                manualTab.classList.add('text-gray-600');
+                
+                // Show camera scanner, hide manual
+                document.getElementById('camera-scanner').classList.remove('hidden');
+                document.getElementById('manual-scanner').classList.add('hidden');
+            } else {
+                manualTab.classList.add('bg-primary-500', 'text-white');
+                manualTab.classList.remove('text-gray-600');
+                cameraTab.classList.remove('bg-primary-500', 'text-white');
+                cameraTab.classList.add('text-gray-600');
+                
+                // Show manual scanner, hide camera
+                document.getElementById('manual-scanner').classList.remove('hidden');
+                document.getElementById('camera-scanner').classList.add('hidden');
+                
+                // Stop camera if running
+                if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
+                    stopQrScanner();
+                }
+            }
+        }
+        
+        // QR Scanner functions
+        function openQrScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Reset to camera mode by default
+            switchScannerMode('camera');
+        }
+        
+        function closeQrScanner() {
+            // Stop camera if running
+            if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
+                stopQrScanner();
+            }
+            
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            // Clear manual input
+            document.getElementById('qr-code-input').value = '';
+        }
+        
+        // Start QR Code scanner with camera
+        async function startQrScanner() {
+            try {
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("qr-reader");
+                }
+                
+                // Get available cameras
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length) {
+                    // Use back camera if available, otherwise use first camera
+                    const cameraId = devices.find(device => 
+                        device.label.toLowerCase().includes('back') || 
+                        device.label.toLowerCase().includes('rear')
+                    )?.id || devices[0].id;
+                    
+                    // Start scanning
+                    await html5QrCode.start(
+                        cameraId,
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 }
+                        },
+                        onScanSuccess,
+                        onScanFailure
+                    );
+                    
+                    // Update button states
+                    document.getElementById('start-scan-btn').classList.add('hidden');
+                    document.getElementById('stop-scan-btn').classList.remove('hidden');
+                    
+                } else {
+                    alert('❌ Tidak ditemukan kamera pada perangkat ini. Gunakan mode manual.');
+                    switchScannerMode('manual');
+                }
+            } catch (err) {
+                console.error('Error starting QR scanner:', err);
+                alert('❌ Gagal mengakses kamera. Pastikan browser memiliki izin kamera atau gunakan mode manual.');
+                switchScannerMode('manual');
+            }
+        }
+        
+        // Stop QR Code scanner
+        function stopQrScanner() {
+            if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
+                html5QrCode.stop().then(() => {
+                    console.log('QR Code scanner stopped');
+                }).catch(err => {
+                    console.error('Error stopping scanner:', err);
+                });
+            }
+            
+            // Update button states
+            document.getElementById('start-scan-btn').classList.remove('hidden');
+            document.getElementById('stop-scan-btn').classList.add('hidden');
+        }
+        
+        // Handle successful QR code scan
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('QR Code scanned:', decodedText);
+            
+            // Stop scanning
+            stopQrScanner();
+            
+            // Process the scanned QR code
+            processScannedQrCode(decodedText);
+        }
+        
+        // Handle scan failure (optional)
+        function onScanFailure(error) {
+            // Silently handle scan failures - they happen frequently as the scanner tries to read
+            // console.warn('QR scan failed:', error);
+        }
+        
+        // Process scanned QR code or manual input
+        function processScannedQrCode(qrCodeData) {
+            // Extract transaction ID from URL if it's a QR code URL
+            let transactionId = qrCodeData;
+            if (qrCodeData.includes('/admin/pickup/scan/')) {
+                const urlParts = qrCodeData.split('/admin/pickup/scan/');
+                transactionId = urlParts[1];
+            }
+            
+            // Show confirmation before processing
+            const confirmMessage = `Akan memproses pickup untuk pesanan ID: ${transactionId}\n\nLanjutkan?`;
+            if (confirm(confirmMessage)) {
+                processPickupById(transactionId);
+            } else {
+                // If cancelled, restart scanner
+                if (currentScannerMode === 'camera') {
+                    startQrScanner();
+                }
+            }
+        }
+        
+        // Process pickup using manual input
+        async function processPickup() {
+            const input = document.getElementById('qr-code-input');
+            const value = input.value.trim();
+            
+            if (!value) {
+                alert('Harap masukkan ID pesanan atau URL QR Code!');
+                input.focus();
+                return;
+            }
+            
+            processScannedQrCode(value);
+        }
+        
+        // Process pickup by transaction ID
+        async function processPickupById(transactionId) {
+            try {
+                const response = await fetch(`/admin/api/pickup/scan/${transactionId}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`✅ Pickup berhasil!\n\nCustomer: ${result.data.customer_name}\nTotal: Rp ${result.data.total_price.toLocaleString('id-ID')}\nPesanan ID: #${result.data.order_id}`);
+                    
+                    // Close modal and refresh page
+                    closeQrScanner();
+                    location.reload();
+                } else {
+                    alert(`❌ ${result.message}`);
+                    
+                    // Restart scanner if in camera mode
+                    if (currentScannerMode === 'camera') {
+                        setTimeout(() => startQrScanner(), 1000);
+                    }
+                }
+            } catch (error) {
+                console.error('Pickup error:', error);
+                alert('❌ Terjadi kesalahan saat memproses pickup. Silakan coba lagi.');
+                
+                // Restart scanner if in camera mode
+                if (currentScannerMode === 'camera') {
+                    setTimeout(() => startQrScanner(), 1000);
+                }
+            }
+        }
+        
+        // Allow Enter key to process pickup in manual mode
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrInput = document.getElementById('qr-code-input');
+            if (qrInput) {
+                qrInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        processPickup();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

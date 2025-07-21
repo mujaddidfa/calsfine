@@ -186,6 +186,8 @@ document.addEventListener("DOMContentLoaded", function () {
     window.backToCheckoutForm = backToCheckoutForm;
     window.confirmOrder = confirmOrder;
     window.submitOrder = submitOrder;
+    window.showOrderSuccessModal = showOrderSuccessModal;
+    window.closeOrderSuccessModal = closeOrderSuccessModal;
 
     // Initialize cart display
     updateCartDisplay();
@@ -467,7 +469,7 @@ async function submitOrder() {
     };
 
     try {
-        const response = await fetch("/api/order", {
+        const response = await fetch("/order", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -482,10 +484,8 @@ async function submitOrder() {
         const result = await response.json();
 
         if (result.status === "success") {
-            // Success - show confirmation
-            alert(
-                `Pesanan berhasil dibuat!\n\nNomor Pesanan: #${result.transaction_id}\n\nTerima kasih telah berbelanja di CalsFine!\nAnda akan dihubungi melalui WhatsApp untuk konfirmasi.`
-            );
+            // Show QR Code modal
+            showOrderSuccessModal(result.transaction_id, result.qr_code);
 
             // Clear cart and close modals
             cart = [];
@@ -504,5 +504,75 @@ async function submitOrder() {
         console.error("Order submission error:", error);
         alert("Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.");
         throw error; // Re-throw for proper error handling in confirmOrder
+    }
+}
+
+// Function to show order success modal with QR Code
+function showOrderSuccessModal(transactionId, qrCodeDataUri) {
+    // Create modal HTML if it doesn't exist
+    let modal = document.getElementById("order-success-modal");
+    if (!modal) {
+        const modalHtml = `
+            <div id="order-success-modal" class="fixed inset-0 bg-neutral-900/25 z-60 hidden items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <!-- Modal Header -->
+                    <div class="bg-green-500 text-white p-4 rounded-t-lg">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-bold">✅ Pesanan Berhasil!</h2>
+                            <button onclick="closeOrderSuccessModal()" class="text-white hover:text-gray-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modal Content -->
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-semibold mb-2">Nomor Pesanan</h3>
+                        <p class="text-2xl font-bold text-primary-600 mb-4">#<span id="order-number"></span></p>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-600 mb-4">Simpan QR Code ini untuk pickup pesanan Anda:</p>
+                            <div class="flex justify-center mb-4">
+                                <img id="qr-code-image" src="" alt="QR Code Pickup" class="max-w-[200px] border border-gray-200 rounded">
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Cara Pickup:</strong><br>
+                                1. Datang ke lokasi sesuai waktu yang dipilih<br>
+                                2. Tunjukkan QR Code ini ke admin<br>
+                                3. Pesanan akan dikonfirmasi sebagai selesai
+                            </p>
+                        </div>
+                        
+                        <button onclick="closeOrderSuccessModal()" class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition font-semibold">
+                            Mengerti
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML("beforeend", modalHtml);
+        modal = document.getElementById("order-success-modal");
+    }
+
+    // Update modal content
+    document.getElementById("order-number").textContent = transactionId;
+    document.getElementById("qr-code-image").src = qrCodeDataUri;
+
+    // Show modal
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+// Function to close order success modal
+function closeOrderSuccessModal() {
+    const modal = document.getElementById("order-success-modal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
     }
 }

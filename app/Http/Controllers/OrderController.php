@@ -9,6 +9,7 @@ use App\Models\TransactionItem;
 use App\Models\Menu;
 use App\Models\Location;
 use App\Models\PickupTime;
+use App\Services\QrCodeService;
 
 class OrderController extends Controller
 {
@@ -81,10 +82,14 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Generate QR Code untuk pickup
+            $qrCodeDataUri = QrCodeService::generatePickupQrDataUri($transaction->id);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Pesanan berhasil dibuat',
-                'transaction_id' => $transaction->id
+                'transaction_id' => $transaction->id,
+                'qr_code' => $qrCodeDataUri
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

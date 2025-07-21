@@ -9,10 +9,12 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\PickupTimeController;
+use App\Http\Controllers\Admin\PickupController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/order', [OrderController::class, 'index'])->name('order');
+Route::post('/order', [OrderController::class, 'store'])->name('order.store');
 
 // Admin dashboard routes
 Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(function () {
@@ -64,6 +66,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(functi
     // Pickup Time Management Routes (integrated with locations)
     Route::post('/locations/{location}/pickup-times', [LocationController::class, 'storePickupTime'])->name('locations.pickup-times.store');
     Route::delete('/locations/{location}/pickup-times/{pickupTime}', [LocationController::class, 'destroyPickupTime'])->name('locations.pickup-times.destroy');
+    
+    // QR Code Pickup Routes
+    Route::get('/pickup/scan/{id}', [PickupController::class, 'scan'])->name('pickup.scan');
+    Route::get('/api/pickup/scan/{id}', [PickupController::class, 'apiScan'])->name('pickup.api.scan');
 });
 
 // Redirect /admin to dashboard
