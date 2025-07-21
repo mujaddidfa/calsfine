@@ -82,13 +82,14 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // Generate QR Code untuk pickup
-            $qrCodeDataUri = QrCodeService::generatePickupQrDataUri($transaction->id);
+            // Generate QR Code untuk pickup menggunakan pickup code
+            $qrCodeDataUri = QrCodeService::generatePickupQrDataUri($transaction->pickup_code);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Pesanan berhasil dibuat',
                 'transaction_id' => $transaction->id,
+                'pickup_code' => $transaction->pickup_code,
                 'qr_code' => $qrCodeDataUri
             ]);
         } catch (\Exception $e) {

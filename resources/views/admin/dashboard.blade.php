@@ -381,11 +381,13 @@
                 <div id="manual-scanner" class="scanner-mode hidden">
                     <div class="mb-4">
                         <label for="qr-code-input" class="block text-sm font-medium text-gray-700 mb-2">
-                            Masukkan ID Pesanan atau URL QR Code:
+                            Masukkan Pickup Code atau URL QR Code:
                         </label>
                         <input type="text" id="qr-code-input" 
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500" 
-                               placeholder="Contoh: 12345 atau paste URL dari QR code">
+                               placeholder="Contoh: ABC12345 atau paste URL dari QR code"
+                               maxlength="8"
+                               style="text-transform: uppercase;">
                     </div>
                     
                     <div class="flex space-x-3 mb-4">
@@ -577,17 +579,17 @@
         
         // Process scanned QR code or manual input
         function processScannedQrCode(qrCodeData) {
-            // Extract transaction ID from URL if it's a QR code URL
-            let transactionId = qrCodeData;
+            // Extract pickup code from URL if it's a QR code URL
+            let pickupCode = qrCodeData.toUpperCase();
             if (qrCodeData.includes('/admin/pickup/scan/')) {
                 const urlParts = qrCodeData.split('/admin/pickup/scan/');
-                transactionId = urlParts[1];
+                pickupCode = urlParts[1];
             }
             
             // Show confirmation before processing
-            const confirmMessage = `Akan memproses pickup untuk pesanan ID: ${transactionId}\n\nLanjutkan?`;
+            const confirmMessage = `Akan memproses pickup untuk code: ${pickupCode}\n\nLanjutkan?`;
             if (confirm(confirmMessage)) {
-                processPickupById(transactionId);
+                processPickupByCode(pickupCode);
             } else {
                 // If cancelled, restart scanner
                 if (currentScannerMode === 'camera') {
@@ -602,7 +604,7 @@
             const value = input.value.trim();
             
             if (!value) {
-                alert('Harap masukkan ID pesanan atau URL QR Code!');
+                alert('Harap masukkan Pickup Code atau URL QR Code!');
                 input.focus();
                 return;
             }
@@ -610,10 +612,10 @@
             processScannedQrCode(value);
         }
         
-        // Process pickup by transaction ID
-        async function processPickupById(transactionId) {
+        // Process pickup by pickup code
+        async function processPickupByCode(pickupCode) {
             try {
-                const response = await fetch(`/admin/api/pickup/scan/${transactionId}`, {
+                const response = await fetch(`/admin/api/pickup/scan/${pickupCode}`, {
                     method: 'GET',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
@@ -623,7 +625,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert(`✅ Pickup berhasil!\n\nCustomer: ${result.data.customer_name}\nTotal: Rp ${result.data.total_price.toLocaleString('id-ID')}\nPesanan ID: #${result.data.order_id}`);
+                    alert(`✅ Pickup berhasil!\n\nCustomer: ${result.data.customer_name}\nTotal: Rp ${result.data.total_price.toLocaleString('id-ID')}\nPesanan ID: #${result.data.order_id}\nPickup Code: ${result.data.pickup_code}`);
                     
                     // Close modal and refresh page
                     closeQrScanner();

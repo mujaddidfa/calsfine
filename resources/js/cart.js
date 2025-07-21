@@ -484,8 +484,12 @@ async function submitOrder() {
         const result = await response.json();
 
         if (result.status === "success") {
-            // Show QR Code modal
-            showOrderSuccessModal(result.transaction_id, result.qr_code);
+            // Show QR Code modal with pickup code
+            showOrderSuccessModal(
+                result.transaction_id,
+                result.qr_code,
+                result.pickup_code
+            );
 
             // Clear cart and close modals
             cart = [];
@@ -508,7 +512,7 @@ async function submitOrder() {
 }
 
 // Function to show order success modal with QR Code
-function showOrderSuccessModal(transactionId, qrCodeDataUri) {
+function showOrderSuccessModal(transactionId, qrCodeDataUri, pickupCode) {
     // Create modal HTML if it doesn't exist
     let modal = document.getElementById("order-success-modal");
     if (!modal) {
@@ -530,7 +534,8 @@ function showOrderSuccessModal(transactionId, qrCodeDataUri) {
                     <!-- Modal Content -->
                     <div class="p-6 text-center">
                         <h3 class="text-lg font-semibold mb-2">Nomor Pesanan</h3>
-                        <p class="text-2xl font-bold text-primary-600 mb-4">#<span id="order-number"></span></p>
+                        <p class="text-2xl font-bold text-primary-600 mb-2">#<span id="order-number"></span></p>
+                        <p class="text-lg font-semibold text-green-600 mb-4">Pickup Code: <span id="pickup-code" class="font-mono text-xl"></span></p>
                         
                         <div class="mb-4">
                             <p class="text-gray-600 mb-4">Simpan QR Code ini untuk pickup pesanan Anda:</p>
@@ -543,7 +548,7 @@ function showOrderSuccessModal(transactionId, qrCodeDataUri) {
                             <p class="text-sm text-yellow-700">
                                 <strong>Cara Pickup:</strong><br>
                                 1. Datang ke lokasi sesuai waktu yang dipilih<br>
-                                2. Tunjukkan QR Code ini ke admin<br>
+                                2. Tunjukkan QR Code ini ke admin atau berikan Pickup Code<br>
                                 3. Pesanan akan dikonfirmasi sebagai selesai
                             </p>
                         </div>
@@ -561,6 +566,7 @@ function showOrderSuccessModal(transactionId, qrCodeDataUri) {
 
     // Update modal content
     document.getElementById("order-number").textContent = transactionId;
+    document.getElementById("pickup-code").textContent = pickupCode || "";
     document.getElementById("qr-code-image").src = qrCodeDataUri;
 
     // Show modal

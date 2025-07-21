@@ -68,8 +68,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(functi
     Route::delete('/locations/{location}/pickup-times/{pickupTime}', [LocationController::class, 'destroyPickupTime'])->name('locations.pickup-times.destroy');
     
     // QR Code Pickup Routes
-    Route::get('/pickup/scan/{id}', [PickupController::class, 'scan'])->name('pickup.scan');
-    Route::get('/api/pickup/scan/{id}', [PickupController::class, 'apiScan'])->name('pickup.api.scan');
+    Route::get('/pickup/scan/{code}', [PickupController::class, 'scan'])->name('pickup.scan');
+    Route::get('/api/pickup/scan/{code}', [PickupController::class, 'apiScan'])->name('pickup.api.scan');
 });
 
 // Redirect /admin to dashboard
