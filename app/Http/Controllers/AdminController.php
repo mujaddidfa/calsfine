@@ -16,24 +16,26 @@ class AdminController extends Controller
         
         // Calculate H-1 order system stats
         $stats = [
-            // Penjualan hari ini (dari order H-1 kemarin)
-            'today_orders' => Transaction::whereDate('order_date', $today)->count(),
-            'today_revenue' => Transaction::whereDate('order_date', $today)
+            // Penjualan hari ini (pesanan yang pickup hari ini)
+            'today_orders' => Transaction::whereDate('pick_up_date', $today)->count(),
+            'today_revenue' => Transaction::whereDate('pick_up_date', $today)
                                         ->whereIn('status', ['paid', 'completed'])
                                         ->sum('total_price'),
             
-            // Pesanan yang sudah diambil hari ini
-            'completed_orders' => Transaction::whereDate('order_date', $today)
+            // Pesanan yang sudah diambil hari ini (pickup hari ini dan status completed)
+            'completed_orders' => Transaction::whereDate('pick_up_date', $today)
                                             ->where('status', 'completed')
                                             ->count(),
             
-            // Pesanan belum diambil hari ini (semua status selain completed)
-            'pending_orders' => Transaction::whereDate('order_date', $today)
+            // Pesanan belum diambil hari ini (pickup hari ini tapi belum completed)
+            'pending_orders' => Transaction::whereDate('pick_up_date', $today)
                                           ->where('status', '!=', 'completed')
                                           ->count(),
             
-            // Order H-1 untuk besok
-            'tomorrow_orders' => Transaction::whereDate('order_date', $tomorrow)->count(),
+            // Order H-1 untuk besok (pesanan yang dipesan hari ini untuk pickup besok)
+            'tomorrow_orders' => Transaction::whereDate('order_date', $today)
+                                           ->whereDate('pick_up_date', $tomorrow)
+                                           ->count(),
             
             // Legacy stats for compatibility  
             'total_orders' => Transaction::count(),
@@ -45,16 +47,17 @@ class AdminController extends Controller
             ? round(($stats['completed_orders'] / $total_today_orders) * 100, 1)
             : 0;
 
-        // Get recent orders for today (H-1 orders from yesterday)
+        // Get recent orders for today (pesanan yang pickup hari ini)
         $recent_orders = Transaction::with(['location'])
-            ->whereDate('order_date', $today)
+            ->whereDate('pick_up_date', $today)
             ->orderBy('pick_up_date', 'asc')
             ->take(10)
             ->get();
 
-        // Get tomorrow orders (H-1 orders placed today for tomorrow)
+        // Get tomorrow orders (pesanan yang dipesan hari ini untuk pickup besok)
         $tomorrow_orders = Transaction::with(['location', 'items.menu'])
-            ->whereDate('order_date', $tomorrow)
+            ->whereDate('order_date', $today)
+            ->whereDate('pick_up_date', $tomorrow)
             ->orderBy('pick_up_date', 'asc')
             ->take(15)
             ->get();

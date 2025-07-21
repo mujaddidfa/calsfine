@@ -57,7 +57,7 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-sm font-medium text-gray-500">Penjualan Hari Ini</h3>
+                        <h3 class="text-sm font-medium text-gray-500">Pickup Hari Ini</h3>
                         <p class="text-2xl font-bold text-gray-900">Rp {{ number_format($stats['today_revenue']) }}</p>
                         <p class="text-xs text-gray-500 mt-1">{{ $stats['today_orders'] }} pesanan</p>
                     </div>
@@ -123,7 +123,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Pesanan Hari Ini ({{ count($recent_orders) }})
+                            Pickup Hari Ini ({{ count($recent_orders) }})
                         </span>
                     </button>
                     <button onclick="switchTab('tomorrow')" id="tab-tomorrow" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
@@ -142,8 +142,8 @@
                 <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Pesanan Hari Ini</h3>
-                            <p class="text-gray-600 text-sm">Status pengambilan pesanan - {{ now()->locale('id')->translatedFormat('l, j F Y') }}</p>
+                            <h3 class="text-lg font-semibold text-gray-900">Pickup Hari Ini</h3>
+                            <p class="text-gray-600 text-sm">Pesanan yang dijadwalkan pickup hari ini - {{ now()->locale('id')->translatedFormat('l, j F Y') }}</p>
                         </div>
                         <div class="flex items-center space-x-4">
                             <div class="text-sm text-gray-600">
@@ -212,7 +212,7 @@
                                         <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                                         </svg>
-                                        <p class="text-gray-500 font-medium">Belum ada pesanan hari ini</p>
+                                        <p class="text-gray-500 font-medium">Belum ada pesanan pickup hari ini</p>
                                         <p class="text-gray-400 text-sm mt-1">Pesanan H-1 akan muncul di sini</p>
                                     </div>
                                 </td>
@@ -229,7 +229,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">Pesanan Besok</h3>
-                            <p class="text-gray-600 text-sm">Daftar pesanan yang akan diambil besok - {{ now()->addDay()->locale('id')->translatedFormat('l, j F Y') }}</p>
+                            <p class="text-gray-600 text-sm">Pesanan yang dipesan hari ini untuk pickup besok - {{ now()->addDay()->locale('id')->translatedFormat('l, j F Y') }}</p>
                         </div>
                         <div class="flex items-center space-x-4">
                             <div class="text-sm text-gray-600">
