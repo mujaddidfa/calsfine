@@ -25,11 +25,10 @@ class TransactionSeeder extends Seeder
             return;
         }
 
-        // Create transactions for the last 30 days
-        for ($i = 29; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            $orderDate = $date->format('Y-m-d');
-            $pickupDate = $date->format('Y-m-d H:i:s');
+        // Create transactions for the last 30 days (H-1 system)
+        for ($i = 30; $i >= 1; $i--) {
+            $orderDate = Carbon::now()->subDays($i)->format('Y-m-d'); // Order date (H-1)
+            $pickupDate = Carbon::now()->subDays($i - 1); // Pickup date (next day)
             
             // Create 3-8 transactions per day
             $transactionCount = rand(3, 8);
@@ -38,21 +37,28 @@ class TransactionSeeder extends Seeder
                 // Random pickup time between 10:00 and 16:00
                 $pickupHour = rand(10, 16);
                 $pickupMinute = rand(0, 59);
-                $finalPickupDate = Carbon::parse($orderDate)->setTime($pickupHour, $pickupMinute);
+                $finalPickupDate = $pickupDate->copy()->setTime($pickupHour, $pickupMinute);
                 
-                // Determine status based on date
-                if ($i == 0) {
-                    // Today: mix of all statuses
-                    $statuses = ['pending', 'paid', 'completed', 'cancelled', 'wasted'];
+                // Determine status based on pickup date
+                $daysSincePickup = Carbon::now()->diffInDays($finalPickupDate, false);
+                
+                if ($daysSincePickup == 0) {
+                    // Today's pickup: mix of pending, paid, completed
+                    $statuses = ['pending', 'paid', 'completed', 'completed'];
                     $status = $statuses[array_rand($statuses)];
-                } elseif ($i == 1) {
-                    // Yesterday: mostly completed, some cancelled/wasted
-                    $statuses = ['completed', 'completed', 'completed', 'cancelled', 'wasted'];
+                } elseif ($daysSincePickup < 0) {
+                    // Past pickup dates: mostly completed, some cancelled/wasted
+                    if ($daysSincePickup >= -1) {
+                        // Yesterday: mostly completed, some wasted
+                        $statuses = ['completed', 'completed', 'completed', 'completed', 'wasted'];
+                    } else {
+                        // Older dates: almost all completed, rare wasted/cancelled
+                        $statuses = ['completed', 'completed', 'completed', 'completed', 'completed', 'completed', 'wasted', 'cancelled'];
+                    }
                     $status = $statuses[array_rand($statuses)];
                 } else {
-                    // Older dates: mostly completed, some cancelled/wasted
-                    $statuses = ['completed', 'completed', 'completed', 'completed', 'cancelled', 'wasted'];
-                    $status = $statuses[array_rand($statuses)];
+                    // Future pickup dates: should not exist in this loop
+                    continue;
                 }
                 
                 // Create transaction
@@ -99,20 +105,20 @@ class TransactionSeeder extends Seeder
             }
         }
 
-        // Create some transactions for tomorrow (H-1 orders)
-        $tomorrow = Carbon::now()->addDay();
-        $tomorrowOrderDate = $tomorrow->format('Y-m-d');
+        // Create H-1 orders for tomorrow (ordered today, pickup tomorrow)
+        $today = Carbon::now()->format('Y-m-d'); // Order date (today)
+        $tomorrow = Carbon::now()->addDay(); // Pickup date (tomorrow)
         
-        // Create 5-10 transactions for tomorrow
-        $tomorrowTransactionCount = rand(5, 10);
+        // Create 5-12 transactions for tomorrow pickup
+        $tomorrowTransactionCount = rand(5, 12);
         
         for ($j = 0; $j < $tomorrowTransactionCount; $j++) {
             // Random pickup time between 10:00 and 16:00
             $pickupHour = rand(10, 16);
             $pickupMinute = rand(0, 59);
-            $finalPickupDate = Carbon::parse($tomorrowOrderDate)->setTime($pickupHour, $pickupMinute);
+            $finalPickupDate = $tomorrow->copy()->setTime($pickupHour, $pickupMinute);
             
-            // Tomorrow orders are mostly pending or paid
+            // Tomorrow pickup orders are mostly pending or paid (just ordered today)
             $statuses = ['pending', 'pending', 'paid', 'paid', 'paid'];
             $status = $statuses[array_rand($statuses)];
             
@@ -121,11 +127,11 @@ class TransactionSeeder extends Seeder
                 'customer_name' => $this->generateRandomName(),
                 'wa_number' => $this->generateRandomPhone(),
                 'location_id' => $locations->random()->id,
-                'order_date' => $tomorrowOrderDate,
-                'pick_up_date' => $finalPickupDate,
+                'order_date' => $today, // Ordered today
+                'pick_up_date' => $finalPickupDate, // Pickup tomorrow
                 'total_price' => 0, // Will be calculated after items
                 'status' => $status,
-                'note' => rand(1, 10) > 8 ? 'Order H-1: ' . $this->generateRandomNote() : null,
+                'note' => rand(1, 10) > 8 ? 'Order H-1 untuk besok: ' . $this->generateRandomNote() : null,
             ]);
 
             // Add 1-3 items per transaction
@@ -160,7 +166,9 @@ class TransactionSeeder extends Seeder
         }
 
         $this->command->info('Transaction seeder completed successfully!');
-        $this->command->info('Created transactions for the last 30 days and tomorrow');
+        $this->command->info('Created H-1 order system: orders placed 1 day before pickup');
+        $this->command->info('- Historical data: 30 days of pickup dates with their H-1 orders');
+        $this->command->info('- Tomorrow pickup: orders placed today for tomorrow pickup');
     }
 
     private function generateRandomName(): string
