@@ -902,28 +902,47 @@
                     // Close preview modal
                     closeOrderPreview();
                     
+                    console.log('Order creation successful:', result);
+                    console.log('QR Code:', result.qr_code);
+                    console.log('Pickup Code:', result.pickup_code);
+                    
                     // Open Midtrans payment popup
                     if (result.snap_token) {
                         window.snap.pay(result.snap_token, {
-                            onSuccess: function(result) {
-                                console.log('Payment success:', result);
+                            onSuccess: function(midtransResult) {
+                                console.log('Payment success:', midtransResult);
                                 // Clear cart
                                 cart = [];
                                 updateCartDisplay();
-                                // Redirect to success page or show success modal
-                                alert('Pembayaran berhasil! Terima kasih atas pesanan Anda.');
-                                window.location.reload();
+                                
+                                // Close preview modal
+                                closeOrderPreview();
+                                
+                                // Show success modal with QR code - use data from order creation response
+                                showOrderSuccessModal(
+                                    result.transaction_id,
+                                    result.qr_code,
+                                    result.pickup_code
+                                );
                             },
-                            onPending: function(result) {
-                                console.log('Payment pending:', result);
+                            onPending: function(midtransResult) {
+                                console.log('Payment pending:', midtransResult);
                                 // Clear cart
                                 cart = [];
                                 updateCartDisplay();
-                                alert('Pembayaran pending. Silakan selesaikan pembayaran Anda.');
-                                window.location.reload();
+                                
+                                // Close preview modal
+                                closeOrderPreview();
+                                
+                                // Show success modal with QR code even for pending payments
+                                showOrderSuccessModal(
+                                    result.transaction_id,
+                                    result.qr_code,
+                                    result.pickup_code
+                                );
                             },
-                            onError: function(result) {
-                                console.log('Payment error:', result);
+                            onError: function(midtransResult) {
+                                console.log('Payment error:', midtransResult);
                                 alert('Terjadi kesalahan dalam pembayaran. Silakan coba lagi.');
                             },
                             onClose: function() {
@@ -941,6 +960,122 @@
                 console.error("Order submission error:", error);
                 alert("Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.");
                 throw error;
+            }
+        }
+
+        // Function to show order success modal with QR Code
+        function showOrderSuccessModal(transactionId, qrCodeDataUri, pickupCode) {
+            // Create modal HTML if it doesn't exist
+            let modal = document.getElementById("order-success-modal");
+            if (!modal) {
+                const modalHTML = `
+                    <div id="order-success-modal" class="fixed inset-0 bg-neutral-900/25 z-70 hidden items-center justify-center p-4">
+                        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                            <!-- Modal Header -->
+                            <div class="bg-green-500 text-white p-4 rounded-t-lg">
+                                <div class="flex items-center justify-between">
+                                    <h2 class="text-xl font-bold">Pesanan Berhasil!</h2>
+                                    <button onclick="closeOrderSuccessModal()" class="text-white hover:text-gray-200">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Modal Content -->
+                            <div class="p-6 text-center">
+                                <!-- Success Icon -->
+                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                                    <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Pembayaran Berhasil!</h3>
+                                <p class="text-sm text-gray-600 mb-4">Terima kasih atas pesanan Anda. Berikut adalah QR code untuk pickup:</p>
+
+                                <!-- Order Info -->
+                                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                    <div class="text-sm">
+                                        <div class="flex justify-between mb-2">
+                                            <span class="text-gray-600">Nomor Pesanan:</span>
+                                            <span class="font-medium" id="order-number">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Kode Pickup:</span>
+                                            <span class="font-bold text-primary-600" id="pickup-code">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- QR Code -->
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-600 mb-2">Scan QR Code untuk pickup:</p>
+                                    <div class="flex justify-center">
+                                        <img id="qr-code-image" src="" alt="QR Code" class="w-48 h-48 border border-gray-200 rounded-lg">
+                                    </div>
+                                </div>
+
+                                <!-- Instructions -->
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <div class="text-left">
+                                            <p class="text-sm font-medium text-blue-800">Petunjuk Pickup:</p>
+                                            <ul class="text-sm text-blue-700 mt-1 list-disc list-inside">
+                                                <li>Datang ke lokasi pickup sesuai jadwal</li>
+                                                <li>Tunjukkan QR code atau sebutkan kode pickup</li>
+                                                <li>Screenshot atau simpan QR code ini</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Button -->
+                                <button 
+                                    onclick="closeOrderSuccessModal()"
+                                    class="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition font-medium">
+                                    Selesai
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                modal = document.getElementById("order-success-modal");
+            }
+
+            // Update modal content
+            document.getElementById("order-number").textContent = transactionId;
+            document.getElementById("pickup-code").textContent = pickupCode || "";
+            
+            const qrImage = document.getElementById("qr-code-image");
+            if (qrCodeDataUri && qrCodeDataUri !== '') {
+                qrImage.src = qrCodeDataUri;
+                qrImage.style.display = 'block';
+            } else {
+                qrImage.style.display = 'none';
+            }
+
+            // Show modal
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        // Function to close order success modal
+        window.closeOrderSuccessModal = function() {
+            const modal = document.getElementById("order-success-modal");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                
+                // Reload page after closing modal
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             }
         }
 
