@@ -720,6 +720,230 @@
             });
         }
 
+        // Order Preview Functions
+        window.showOrderPreview = function() {
+            const form = document.getElementById("checkout-form");
+
+            // Validate form first
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            // Hide checkout modal
+            const checkoutModal = document.getElementById("checkout-modal");
+            checkoutModal.classList.add("hidden");
+            checkoutModal.classList.remove("flex");
+
+            // Show preview modal
+            const previewModal = document.getElementById("order-preview-modal");
+            previewModal.classList.remove("hidden");
+            previewModal.classList.add("flex");
+
+            // Populate customer information
+            document.getElementById("preview-customer-name").textContent =
+                formData.get("customer_name");
+            document.getElementById("preview-customer-phone").textContent =
+                formData.get("wa_number");
+
+            // Get location name from select
+            const locationSelect = document.getElementById("pickup-location");
+            const selectedLocation =
+                locationSelect.options[locationSelect.selectedIndex].text;
+            document.getElementById("preview-pickup-location").textContent =
+                selectedLocation;
+
+            // Get pickup time
+            const timeSelect = document.getElementById("pickup-time");
+            const selectedTime = timeSelect ? timeSelect.value : "";
+            document.getElementById("preview-pickup-time").textContent =
+                selectedTime || "-";
+
+            // Get formatted pickup date
+            const pickupDateDisplay = document.getElementById(
+                "pickup-date-display"
+            ).textContent;
+            document.getElementById("preview-pickup-date").textContent =
+                pickupDateDisplay;
+
+            // Handle notes
+            const notes = formData.get("note");
+            const notesContainer = document.getElementById("preview-notes-container");
+            const notesElement = document.getElementById("preview-notes");
+            if (notes && notes.trim() !== "") {
+                notesContainer.classList.remove("hidden");
+                notesElement.textContent = notes;
+            } else {
+                notesContainer.classList.add("hidden");
+            }
+
+            // Populate order items
+            populatePreviewItems();
+        }
+
+        window.closeOrderPreview = function() {
+            const modal = document.getElementById("order-preview-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        window.backToCheckoutForm = function() {
+            // Hide preview modal
+            const previewModal = document.getElementById("order-preview-modal");
+            previewModal.classList.add("hidden");
+            previewModal.classList.remove("flex");
+
+            // Show checkout modal
+            const checkoutModal = document.getElementById("checkout-modal");
+            checkoutModal.classList.remove("hidden");
+            checkoutModal.classList.add("flex");
+        }
+
+        function populatePreviewItems() {
+            const previewItems = document.getElementById("preview-items");
+            const previewTotalItems = document.getElementById("preview-total-items");
+            const previewTotalPrice = document.getElementById("preview-total-price");
+
+            // Calculate totals
+            const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const total = cart.reduce(
+                (sum, item) => sum + item.price * item.quantity,
+                0
+            );
+
+            // Update totals
+            previewTotalItems.textContent = totalQty;
+            previewTotalPrice.textContent = total.toLocaleString("id-ID");
+
+            // Populate items
+            previewItems.innerHTML = cart
+                .map(
+                    (item) => `
+                <div class="bg-white border border-gray-200 rounded-lg p-3">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-800">${item.name}</h4>
+                            <div class="flex items-center mt-1 text-sm text-gray-600">
+                                <span>Rp ${item.price.toLocaleString("id-ID")}</span>
+                                <span class="mx-2">×</span>
+                                <span>${item.quantity}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-primary-600">
+                                Rp ${(item.price * item.quantity).toLocaleString(
+                                    "id-ID"
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `
+                )
+                .join("");
+        }
+
+        window.confirmOrder = function() {
+            // Show loading state
+            const confirmBtn = document.querySelector(
+                "#order-preview-modal button[onclick='confirmOrder()']"
+            );
+            const originalText = confirmBtn.innerHTML;
+            confirmBtn.innerHTML =
+                '<svg class="w-4 h-4 inline mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Memproses...';
+            confirmBtn.disabled = true;
+
+            // Submit the order
+            submitOrder().finally(() => {
+                // Reset button state
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            });
+        }
+
+        // Submit order to backend
+        async function submitOrder() {
+            const form = document.getElementById("checkout-form");
+            const formData = new FormData(form);
+
+            // Prepare order data
+            const orderData = {
+                customer_name: formData.get("customer_name"),
+                wa_number: formData.get("wa_number"),
+                customer_email: formData.get("customer_email"),
+                location_id: formData.get("location_id"),
+                pickup_time: formData.get("pickup_time"),
+                pick_up_date: formData.get("pick_up_date"),
+                note: formData.get("note") || "",
+                items: cart.map((item) => ({
+                    menu_id: item.id,
+                    qty: item.quantity,
+                })),
+            };
+
+            try {
+                const response = await fetch("/order", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN":
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute("content") || "",
+                    },
+                    body: JSON.stringify(orderData),
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    // Close preview modal
+                    closeOrderPreview();
+                    
+                    // Open Midtrans payment popup
+                    if (result.snap_token) {
+                        window.snap.pay(result.snap_token, {
+                            onSuccess: function(result) {
+                                console.log('Payment success:', result);
+                                // Clear cart
+                                cart = [];
+                                updateCartDisplay();
+                                // Redirect to success page or show success modal
+                                alert('Pembayaran berhasil! Terima kasih atas pesanan Anda.');
+                                window.location.reload();
+                            },
+                            onPending: function(result) {
+                                console.log('Payment pending:', result);
+                                // Clear cart
+                                cart = [];
+                                updateCartDisplay();
+                                alert('Pembayaran pending. Silakan selesaikan pembayaran Anda.');
+                                window.location.reload();
+                            },
+                            onError: function(result) {
+                                console.log('Payment error:', result);
+                                alert('Terjadi kesalahan dalam pembayaran. Silakan coba lagi.');
+                            },
+                            onClose: function() {
+                                console.log('Payment popup closed');
+                                alert('Pembayaran dibatalkan.');
+                            }
+                        });
+                    } else {
+                        alert('Error: Snap token tidak tersedia');
+                    }
+                } else {
+                    alert(result.message || 'Terjadi kesalahan saat memproses pesanan.');
+                }
+            } catch (error) {
+                console.error("Order submission error:", error);
+                alert("Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.");
+                throw error;
+            }
+        }
+
     </script>
 </body>
 </html>
