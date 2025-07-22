@@ -95,15 +95,23 @@ class AdminController extends Controller
 
     public function getHistoryData(Request $request)
     {
-        $period = $request->get('period', 'daily');
-        
-        // Debug: Check total transactions in database
-        $totalTransactions = Transaction::count();
-        Log::info("Total transactions in database: {$totalTransactions}");
-        
-        $data = [];
-        
-        switch ($period) {
+        try {
+            Log::info("Analytics API called", [
+                'period' => $request->get('period', 'daily'),
+                'user_agent' => $request->header('User-Agent'),
+                'ip' => $request->ip(),
+                'url' => $request->fullUrl()
+            ]);
+            
+            $period = $request->get('period', 'daily');
+            
+            // Debug: Check total transactions in database
+            $totalTransactions = Transaction::count();
+            Log::info("Total transactions in database: {$totalTransactions}");
+            
+            $data = [];
+            
+            switch ($period) {
             case 'daily':
                 // Last 30 days dimulai dari kemarin (hari ini dikecualikan karena belum pasti)
                 for ($i = 1; $i <= 30; $i++) {
@@ -174,10 +182,28 @@ class AdminController extends Controller
                 break;
         }
         
+        Log::info("Analytics data generated", [
+            'period' => $period,
+            'data_count' => count($data)
+        ]);
+        
         return response()->json([
             'success' => true,
             'data' => $data
         ]);
+        
+        } catch (\Exception $e) {
+            Log::error("Analytics API error", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to load analytics data',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     private function getDayStats($date)

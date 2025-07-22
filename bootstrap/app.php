@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/error',
             'payment/test-webhook'
         ]);
+        
+        // Trust all proxies untuk ngrok
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Analytics - CalsFine Admin</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -221,9 +222,27 @@
                 </tr>
             `;
 
-            // Make AJAX call to get real data
-            fetch(`{{ route('admin.history.data') }}?period=${period}`)
-                .then(response => response.json())
+            // Get CSRF token from meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            // Make AJAX call to get real data with proper headers
+            fetch(`{{ route('admin.history.data') }}?period=${period}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     console.log('Received data:', data); // Debug log
                     if (data.success) {
@@ -244,7 +263,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error loading analytics data:', error);
                     document.getElementById('analytics-tbody').innerHTML = `
                         <tr>
                             <td colspan="6" class="px-6 py-12 text-center text-red-500">
@@ -252,8 +271,12 @@
                                     <svg class="w-12 h-12 mx-auto text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                     </svg>
-                                    <p class="text-lg font-medium">Error loading data</p>
-                                    <p class="text-sm">Please try again or contact administrator</p>
+                                    <p class="text-lg font-medium">Error loading analytics data</p>
+                                    <p class="text-sm text-gray-600">Error: ${error.message}</p>
+                                    <p class="text-xs text-gray-500 mt-2">Check browser console for details</p>
+                                    <button onclick="loadAnalyticsData()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                                        Try Again
+                                    </button>
                                 </div>
                             </td>
                         </tr>
