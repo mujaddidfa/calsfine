@@ -24,29 +24,29 @@ class PaymentController extends Controller
     {
         $notification = $request->all();
         
-        Log::info('Midtrans Notification:', $notification);
+        Log::info('Midtrans Notification Received:', [
+            'order_id' => $notification['order_id'] ?? 'unknown',
+            'transaction_status' => $notification['transaction_status'] ?? 'unknown',
+            'payment_type' => $notification['payment_type'] ?? 'unknown',
+            'full_data' => $notification
+        ]);
 
         // Verify notification
         if (!$this->midtransService->verifyNotification($notification)) {
-            Log::error('Invalid Midtrans notification signature');
+            Log::error('Invalid Midtrans notification signature', $notification);
             return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
         }
 
-        // Extract transaction ID from order_id
-        $orderId = $notification['order_id'];
-        $transactionId = $this->extractTransactionId($orderId);
-        
-        if (!$transactionId) {
-            Log::error('Unable to extract transaction ID from order_id: ' . $orderId);
-            return response()->json(['status' => 'error', 'message' => 'Invalid order ID'], 400);
-        }
-
         // Find payment by gateway_order_id
+        $orderId = $notification['order_id'];
         $payment = Payment::where('gateway_order_id', $orderId)->first();
+        
         if (!$payment) {
             Log::error('Payment not found for order_id: ' . $orderId);
             return response()->json(['status' => 'error', 'message' => 'Payment not found'], 404);
         }
+
+        Log::info('Payment found:', ['payment_id' => $payment->id, 'transaction_id' => $payment->transaction_id]);
 
         // Get payment status
         $paymentStatus = $this->midtransService->getPaymentStatus($notification);
@@ -73,6 +73,24 @@ class PaymentController extends Controller
         } else {
             return view('payment.failed', compact('orderId'));
         }
+    }
+
+    /**
+     * Handle payment unfinish callback (user closes popup before payment)
+     */
+    public function unfinish(Request $request)
+    {
+        $orderId = $request->get('order_id');
+        return view('payment.pending', compact('orderId'));
+    }
+
+    /**
+     * Handle payment error callback 
+     */
+    public function error(Request $request)
+    {
+        $orderId = $request->get('order_id');
+        return view('payment.failed', compact('orderId'));
     }
 
     /**

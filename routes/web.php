@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\PickupTimeController;
 use App\Http\Controllers\Admin\PickupController;
 use App\Http\Controllers\PaymentController;
+use Illuminate\Support\Facades\Log;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -20,7 +21,15 @@ Route::post('/order', [OrderController::class, 'store'])->name('order.store');
 // Payment routes
 Route::post('/payment/notification', [PaymentController::class, 'notification'])->name('payment.notification');
 Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payment.finish');
+Route::get('/payment/unfinish', [PaymentController::class, 'unfinish'])->name('payment.unfinish');
+Route::get('/payment/error', [PaymentController::class, 'error'])->name('payment.error');
 Route::get('/payment/status/{transactionId}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+
+// Test endpoint untuk webhook
+Route::post('/payment/test-webhook', function() {
+    Log::info('Test webhook endpoint accessed');
+    return response()->json(['status' => 'success', 'message' => 'Webhook endpoint is working']);
+});
 
 // Admin dashboard routes
 Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(function () {
