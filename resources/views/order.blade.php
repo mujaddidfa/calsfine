@@ -207,7 +207,10 @@
                             name="customer_name"
                             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                             placeholder="Masukkan nama lengkap Anda"
+                            minlength="2"
+                            maxlength="100"
                             required>
+                        <div class="text-gray-500 text-xs mt-1">Nama yang akan dipanggil saat pickup</div>
                     </div>
 
                     <div>
@@ -219,8 +222,12 @@
                             id="customer-phone" 
                             name="wa_number"
                             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                            placeholder="08xxxxxxxxxx"
+                            placeholder="08xxxxxxxxxx atau +62xxxxxxxxx"
+                            maxlength="20"
+                            oninput="validateWhatsAppNumber(this)"
                             required>
+                        <div id="phone-error" class="text-red-500 text-xs mt-1 hidden">Format nomor WhatsApp tidak valid. Gunakan format: 08xxxxxxx atau +62xxxxxxx</div>
+                        <div class="text-gray-500 text-xs mt-1">Untuk konfirmasi pesanan dan pickup</div>
                     </div>
 
                     <div>
@@ -232,7 +239,11 @@
                             id="customer-email" 
                             name="customer_email"
                             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                            placeholder="email@example.com">
+                            placeholder="email@example.com"
+                            maxlength="100"
+                            oninput="validateEmail(this)">
+                        <div id="email-error" class="text-red-500 text-xs mt-1 hidden">Format email tidak valid</div>
+                        <div class="text-gray-500 text-xs mt-1">Untuk menerima notifikasi tambahan</div>
                     </div>
 
                     <div>
@@ -435,6 +446,85 @@
         // Cart functionality
         let cart = [];
         let isCartOpen = false;
+
+        // Validation functions
+        function validateWhatsAppNumber(input) {
+            const phoneError = document.getElementById('phone-error');
+            let phoneValue = input.value.trim();
+            
+            // Auto-format: remove all non-digits first
+            let cleanPhone = phoneValue.replace(/[^\d]/g, '');
+            
+            // Auto-format: if starts with 62, add +
+            if (cleanPhone.startsWith('62')) {
+                cleanPhone = '+' + cleanPhone;
+            }
+            // Auto-format: if starts with 8, add 0
+            else if (cleanPhone.startsWith('8') && cleanPhone.length > 1) {
+                cleanPhone = '0' + cleanPhone;
+            }
+            
+            // Update input value with formatted number
+            if (cleanPhone !== phoneValue) {
+                input.value = cleanPhone;
+                phoneValue = cleanPhone;
+            }
+            
+            // Indonesian phone number patterns
+            const indonesianPhoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,9}$/;
+            
+            if (phoneValue === '') {
+                // Empty field - hide error for required validation to handle
+                phoneError.classList.add('hidden');
+                input.classList.remove('border-red-500');
+                return true;
+            }
+            
+            if (!indonesianPhoneRegex.test(phoneValue)) {
+                phoneError.classList.remove('hidden');
+                input.classList.add('border-red-500');
+                return false;
+            } else {
+                phoneError.classList.add('hidden');
+                input.classList.remove('border-red-500');
+                return true;
+            }
+        }
+
+        function validateEmail(input) {
+            const emailError = document.getElementById('email-error');
+            const emailValue = input.value.trim();
+            
+            if (emailValue === '') {
+                // Empty field is allowed for optional email
+                emailError.classList.add('hidden');
+                input.classList.remove('border-red-500');
+                return true;
+            }
+            
+            // Simple but robust email regex
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!emailRegex.test(emailValue)) {
+                emailError.classList.remove('hidden');
+                input.classList.add('border-red-500');
+                return false;
+            } else {
+                emailError.classList.add('hidden');
+                input.classList.remove('border-red-500');
+                return true;
+            }
+        }
+
+        function validateForm() {
+            const phoneInput = document.getElementById('customer-phone');
+            const emailInput = document.getElementById('customer-email');
+            
+            const isPhoneValid = validateWhatsAppNumber(phoneInput);
+            const isEmailValid = validateEmail(emailInput);
+            
+            return isPhoneValid && isEmailValid;
+        }
 
         // Populate location options
         document.addEventListener('DOMContentLoaded', function() {
@@ -727,6 +817,12 @@
             // Validate form first
             if (!form.checkValidity()) {
                 form.reportValidity();
+                return;
+            }
+
+            // Custom validation for phone and email
+            if (!validateForm()) {
+                alert('Mohon periksa kembali format nomor WhatsApp dan email yang Anda masukkan.');
                 return;
             }
 

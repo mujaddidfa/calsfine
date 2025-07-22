@@ -35,7 +35,12 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:100',
-            'wa_number' => 'required|string|max:20',
+            'wa_number' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^(\+62|62|0)8[1-9][0-9]{6,9}$/'
+            ],
             'customer_email' => 'nullable|email|max:100',
             'note' => 'nullable|string',
             'pick_up_date' => 'required|date',
@@ -44,6 +49,15 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.menu_id' => 'required|exists:menus,id',
             'items.*.qty' => 'required|integer|min:1',
+        ], [
+            'wa_number.required' => 'Nomor WhatsApp wajib diisi.',
+            'wa_number.regex' => 'Format nomor WhatsApp tidak valid. Gunakan format: 08xxxxxxx atau +62xxxxxxx',
+            'customer_email.email' => 'Format email tidak valid.',
+            'customer_name.required' => 'Nama lengkap wajib diisi.',
+            'location_id.required' => 'Lokasi pickup wajib dipilih.',
+            'pickup_time.required' => 'Jam pickup wajib dipilih.',
+            'items.required' => 'Minimal satu item harus dipilih.',
+            'items.min' => 'Minimal satu item harus dipilih.',
         ]);
 
         DB::beginTransaction();
@@ -51,13 +65,31 @@ class OrderController extends Controller
             $total = 0;
             $items = [];
 
+            // Validate stock availability first
             foreach ($validated['items'] as $item) {
                 $menu = Menu::findOrFail($item['menu_id']);
+                
+                // Check if item is still active
+                if (!$menu->is_active) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Menu '{$menu->name}' tidak tersedia."
+                    ], 400);
+                }
+                
+                // Check stock availability
+                if ($menu->stock < $item['qty']) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Stok menu '{$menu->name}' tidak mencukupi. Tersedia: {$menu->stock}, diminta: {$item['qty']}"
+                    ], 400);
+                }
+                
                 $subtotal = $menu->price * $item['qty'];
                 $total += $subtotal;
 
                 $items[] = [
-                    'menu_id' => $menu->id,
+                    'menu_id' => $menu->getKey(),
                     'qty' => $item['qty'],
                     'price_per_item' => $menu->price,
                     'total_price' => $subtotal,
@@ -82,7 +114,7 @@ class OrderController extends Controller
 
             // Create transaction items
             foreach ($items as $item) {
-                $item['transaction_id'] = $transaction->id;
+                $item['transaction_id'] = $transaction->getKey();
                 TransactionItem::create($item);
             }
 
@@ -103,9 +135,9 @@ class OrderController extends Controller
 
             // Create payment record
             $payment = Payment::create([
-                'transaction_id' => $transaction->id,
+                'transaction_id' => $transaction->getKey(),
                 'payment_gateway' => 'midtrans',
-                'gateway_order_id' => 'ORDER-' . $transaction->id . '-' . time(),
+                'gateway_order_id' => 'ORDER-' . $transaction->getKey() . '-' . time(),
                 'snap_token' => $paymentResult['snap_token'],
                 'status' => 'pending',
                 'amount' => $total,
@@ -115,14 +147,14 @@ class OrderController extends Controller
             DB::commit();
 
             // Generate QR Code untuk pickup menggunakan pickup code
-            $qrCodeDataUri = QrCodeService::generatePickupQrDataUri($transaction->pickup_code);
+            $qrCodeDataUri = QrCodeService::generatePickupQrDataUri($transaction->getAttribute('pickup_code'));
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Pesanan berhasil dibuat',
-                'transaction_id' => $transaction->id,
-                'payment_id' => $payment->id,
-                'pickup_code' => $transaction->pickup_code,
+                'transaction_id' => $transaction->getKey(),
+                'payment_id' => $payment->getKey(),
+                'pickup_code' => $transaction->getAttribute('pickup_code'),
                 'qr_code' => $qrCodeDataUri,
                 'snap_token' => $paymentResult['snap_token'],
                 'client_key' => config('services.midtrans.client_key')
