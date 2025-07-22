@@ -10,11 +10,17 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\PickupTimeController;
 use App\Http\Controllers\Admin\PickupController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/order', [OrderController::class, 'index'])->name('order');
 Route::post('/order', [OrderController::class, 'store'])->name('order.store');
+
+// Payment routes
+Route::post('/payment/notification', [PaymentController::class, 'notification'])->name('payment.notification');
+Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payment.finish');
+Route::get('/payment/status/{transactionId}', [PaymentController::class, 'checkStatus'])->name('payment.status');
 
 // Admin dashboard routes
 Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(function () {

@@ -12,10 +12,12 @@ class Transaction extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'pickup_code', 'customer_name', 'wa_number', 'note',
+        'pickup_code', 'customer_name', 'wa_number', 'customer_email', 'note',
         'order_date', 'pick_up_date', 'location_id',
         'total_price', 'status', 'payment_date',
-        'qris_reference', 'qris_expiry'
+        'qris_reference', 'qris_expiry',
+        'midtrans_order_id', 'midtrans_snap_token', 'midtrans_transaction_id',
+        'midtrans_transaction_status', 'payment_method'
     ];
 
     protected $casts = [

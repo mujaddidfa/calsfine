@@ -10,6 +10,7 @@ use App\Models\Menu;
 use App\Models\Location;
 use App\Models\PickupTime;
 use App\Services\QrCodeService;
+use App\Services\MidtransService;
 
 class OrderController extends Controller
 {
@@ -34,6 +35,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'customer_name' => 'required|string|max:100',
             'wa_number' => 'required|string|max:20',
+            'customer_email' => 'nullable|email|max:100',
             'note' => 'nullable|string',
             'pick_up_date' => 'required|date',
             'pickup_time' => 'required|string', // Format HH:MM
@@ -67,6 +69,7 @@ class OrderController extends Controller
             $transaction = Transaction::create([
                 'customer_name' => $validated['customer_name'],
                 'wa_number' => $validated['wa_number'],
+                'customer_email' => $validated['customer_email'] ?? null,
                 'note' => $validated['note'] ?? null,
                 'order_date' => now()->setTimezone('Asia/Jakarta'),
                 'pick_up_date' => $pickupDateTime,
@@ -80,6 +83,28 @@ class OrderController extends Controller
                 TransactionItem::create($item);
             }
 
+            // Reload transaction with items for Midtrans
+            $transaction->load('items.menu.category', 'location');
+
+            // Create Midtrans payment
+            $midtransService = new MidtransService();
+            $paymentResult = $midtransService->createTransaction($transaction);
+
+            if (!$paymentResult['success']) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal membuat pembayaran: ' . $paymentResult['message']
+                ], 500);
+            }
+
+            // Update transaction with Midtrans data
+            $transaction->update([
+                'midtrans_order_id' => 'ORDER-' . $transaction->id . '-' . time(),
+                'midtrans_snap_token' => $paymentResult['snap_token'],
+                'midtrans_transaction_status' => 'pending'
+            ]);
+
             DB::commit();
 
             // Generate QR Code untuk pickup menggunakan pickup code
@@ -90,7 +115,9 @@ class OrderController extends Controller
                 'message' => 'Pesanan berhasil dibuat',
                 'transaction_id' => $transaction->id,
                 'pickup_code' => $transaction->pickup_code,
-                'qr_code' => $qrCodeDataUri
+                'qr_code' => $qrCodeDataUri,
+                'snap_token' => $paymentResult['snap_token'],
+                'client_key' => config('services.midtrans.client_key')
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

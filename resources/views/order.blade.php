@@ -8,6 +8,11 @@
     <title>Calsfine - Makan Sehat, Praktis, dan Lezat</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Midtrans Snap -->
+    <script type="text/javascript"
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="{{ config('services.midtrans.client_key') }}"></script>
 </head>
 <body class="flex flex-col min-h-screen">
     <!-- Order Page Header -->
@@ -219,12 +224,24 @@
                     </div>
 
                     <div>
+                        <label for="customer-email" class="block text-sm font-medium text-gray-700 mb-1">
+                            Email (Opsional)
+                        </label>
+                        <input 
+                            type="email" 
+                            id="customer-email" 
+                            name="customer_email"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            placeholder="email@example.com">
+                    </div>
+
+                    <div>
                         <label for="pickup-location" class="block text-sm font-medium text-gray-700 mb-1">
                             Lokasi Pickup <span class="text-red-500">*</span>
                         </label>
                         <select 
                             id="pickup-location" 
-                            name="id_location"
+                            name="location_id"
                             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                             required>
                             <option value="">Pilih lokasi pickup...</option>
@@ -368,15 +385,17 @@
 
                 <!-- Payment Information -->
                 <div class="mb-6">
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div class="flex items-start">
-                            <svg class="w-5 h-5 text-yellow-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                             </svg>
                             <div>
-                                <p class="text-sm font-medium text-yellow-800">Informasi Pembayaran</p>
-                                <p class="text-sm text-yellow-700 mt-1">
-                                    Pembayaran dilakukan saat pickup. Tim kami akan menghubungi Anda melalui WhatsApp untuk konfirmasi pesanan.
+                                <p class="text-sm font-medium text-blue-800">Informasi Pembayaran</p>
+                                <p class="text-sm text-blue-700 mt-1">
+                                    Setelah konfirmasi pesanan, Anda akan diarahkan ke halaman pembayaran yang aman. 
+                                    Tersedia berbagai metode pembayaran: Transfer Bank, E-wallet (OVO, DANA, LinkAja), 
+                                    Kartu Kredit/Debit, dan lainnya.
                                 </p>
                             </div>
                         </div>

@@ -188,6 +188,9 @@ document.addEventListener("DOMContentLoaded", function () {
     window.submitOrder = submitOrder;
     window.showOrderSuccessModal = showOrderSuccessModal;
     window.closeOrderSuccessModal = closeOrderSuccessModal;
+    window.showPaymentPendingModal = showPaymentPendingModal;
+    window.closePaymentPendingModal = closePaymentPendingModal;
+    window.retryPayment = retryPayment;
 
     // Initialize cart display
     updateCartDisplay();
@@ -458,7 +461,8 @@ async function submitOrder() {
     const orderData = {
         customer_name: formData.get("customer_name"),
         wa_number: formData.get("wa_number"),
-        location_id: formData.get("id_location"),
+        customer_email: formData.get("customer_email"),
+        location_id: formData.get("location_id"),
         pickup_time: formData.get("pickup_time"),
         pick_up_date: formData.get("pick_up_date"),
         note: formData.get("note") || "",
@@ -484,22 +488,57 @@ async function submitOrder() {
         const result = await response.json();
 
         if (result.status === "success") {
-            // Show QR Code modal with pickup code
-            showOrderSuccessModal(
-                result.transaction_id,
-                result.qr_code,
-                result.pickup_code
-            );
-
-            // Clear cart and close modals
-            cart = [];
-            updateCartDisplay();
+            // Close preview modal first
             closeOrderPreview();
-            closeCheckoutModal();
 
-            // Close cart if open
-            if (isCartOpen) {
-                toggleCart();
+            // Open Midtrans Snap payment
+            if (result.snap_token) {
+                window.snap.pay(result.snap_token, {
+                    onSuccess: function (paymentResult) {
+                        console.log("Payment success:", paymentResult);
+
+                        // Show success modal with QR Code
+                        showOrderSuccessModal(
+                            result.transaction_id,
+                            result.qr_code,
+                            result.pickup_code
+                        );
+
+                        // Clear cart and close modals
+                        cart = [];
+                        updateCartDisplay();
+                        closeCheckoutModal();
+
+                        // Close cart if open
+                        if (isCartOpen) {
+                            toggleCart();
+                        }
+                    },
+                    onPending: function (paymentResult) {
+                        console.log("Payment pending:", paymentResult);
+                        alert(
+                            "Pembayaran sedang diproses. Silakan selesaikan pembayaran Anda."
+                        );
+
+                        // Show pending payment modal or redirect
+                        showPaymentPendingModal(result.transaction_id);
+                    },
+                    onError: function (paymentResult) {
+                        console.log("Payment error:", paymentResult);
+                        alert("Pembayaran gagal. Silakan coba lagi.");
+                    },
+                    onClose: function () {
+                        console.log("Payment popup closed");
+                        alert(
+                            "Anda menutup popup pembayaran sebelum selesai. Pesanan masih tersimpan dan Anda dapat melakukan pembayaran nanti."
+                        );
+
+                        // Show order with pending payment status
+                        showPaymentPendingModal(result.transaction_id);
+                    },
+                });
+            } else {
+                throw new Error("Token pembayaran tidak ditemukan");
             }
         } else {
             throw new Error(result.message || "Terjadi kesalahan");
@@ -581,4 +620,96 @@ function closeOrderSuccessModal() {
         modal.classList.add("hidden");
         modal.classList.remove("flex");
     }
+}
+
+// Function to show payment pending modal
+function showPaymentPendingModal(transactionId) {
+    // Create modal HTML if it doesn't exist
+    let modal = document.getElementById("payment-pending-modal");
+    if (!modal) {
+        const modalHtml = `
+            <div id="payment-pending-modal" class="fixed inset-0 bg-neutral-900/25 z-60 hidden items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                    <!-- Modal Header -->
+                    <div class="bg-yellow-500 text-white p-4 rounded-t-lg">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-bold">⏳ Pembayaran Tertunda</h2>
+                            <button onclick="closePaymentPendingModal()" class="text-white hover:text-gray-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modal Content -->
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-semibold mb-2">Pesanan Telah Dibuat</h3>
+                        <p class="text-2xl font-bold text-primary-600 mb-4">#<span id="pending-order-number"></span></p>
+                        
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Status:</strong> Menunggu Pembayaran<br><br>
+                                Pesanan Anda sudah dibuat namun pembayaran belum selesai. 
+                                Silakan selesaikan pembayaran untuk mengkonfirmasi pesanan.
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <button onclick="retryPayment()" class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition font-semibold">
+                                Lanjutkan Pembayaran
+                            </button>
+                            <button onclick="closePaymentPendingModal()" class="w-full bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition font-medium">
+                                Nanti Saja
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML("beforeend", modalHtml);
+        modal = document.getElementById("payment-pending-modal");
+    }
+
+    // Update modal content
+    document.getElementById("pending-order-number").textContent = transactionId;
+
+    // Show modal
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    // Clear cart since order is created
+    cart = [];
+    updateCartDisplay();
+    closeCheckoutModal();
+
+    // Close cart if open
+    if (isCartOpen) {
+        toggleCart();
+    }
+}
+
+// Function to close payment pending modal
+function closePaymentPendingModal() {
+    const modal = document.getElementById("payment-pending-modal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+}
+
+// Function to retry payment
+function retryPayment() {
+    const transactionId = document.getElementById(
+        "pending-order-number"
+    ).textContent;
+
+    // Close pending modal
+    closePaymentPendingModal();
+
+    // You could implement a way to get the snap token again or redirect to payment page
+    // For now, let's show an alert
+    alert(
+        "Fitur retry payment akan segera tersedia. Silakan hubungi admin untuk melanjutkan pembayaran."
+    );
 }
