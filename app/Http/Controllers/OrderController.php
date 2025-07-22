@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Models\Payment;
 use App\Models\Menu;
 use App\Models\Location;
 use App\Models\PickupTime;
@@ -66,6 +67,7 @@ class OrderController extends Controller
             // Gabungkan tanggal dan waktu pickup
             $pickupDateTime = $validated['pick_up_date'] . ' ' . $validated['pickup_time'] . ':00';
 
+            // Create transaction
             $transaction = Transaction::create([
                 'customer_name' => $validated['customer_name'],
                 'wa_number' => $validated['wa_number'],
@@ -78,6 +80,7 @@ class OrderController extends Controller
                 'status' => 'pending',
             ]);
 
+            // Create transaction items
             foreach ($items as $item) {
                 $item['transaction_id'] = $transaction->id;
                 TransactionItem::create($item);
@@ -98,11 +101,15 @@ class OrderController extends Controller
                 ], 500);
             }
 
-            // Update transaction with Midtrans data
-            $transaction->update([
-                'midtrans_order_id' => 'ORDER-' . $transaction->id . '-' . time(),
-                'midtrans_snap_token' => $paymentResult['snap_token'],
-                'midtrans_transaction_status' => 'pending'
+            // Create payment record
+            $payment = Payment::create([
+                'transaction_id' => $transaction->id,
+                'payment_gateway' => 'midtrans',
+                'gateway_order_id' => 'ORDER-' . $transaction->id . '-' . time(),
+                'snap_token' => $paymentResult['snap_token'],
+                'status' => 'pending',
+                'amount' => $total,
+                'expired_at' => now()->addHours(24), // 24 hours expiry
             ]);
 
             DB::commit();
@@ -114,6 +121,7 @@ class OrderController extends Controller
                 'status' => 'success',
                 'message' => 'Pesanan berhasil dibuat',
                 'transaction_id' => $transaction->id,
+                'payment_id' => $payment->id,
                 'pickup_code' => $transaction->pickup_code,
                 'qr_code' => $qrCodeDataUri,
                 'snap_token' => $paymentResult['snap_token'],

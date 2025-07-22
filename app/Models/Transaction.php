@@ -14,17 +14,13 @@ class Transaction extends Model
     protected $fillable = [
         'pickup_code', 'customer_name', 'wa_number', 'customer_email', 'note',
         'order_date', 'pick_up_date', 'location_id',
-        'total_price', 'status', 'payment_date',
-        'qris_reference', 'qris_expiry',
-        'midtrans_order_id', 'midtrans_snap_token', 'midtrans_transaction_id',
-        'midtrans_transaction_status', 'payment_method'
+        'total_price', 'status'
     ];
 
     protected $casts = [
         'order_date' => 'datetime',
         'pick_up_date' => 'datetime',
-        'payment_date' => 'datetime',
-        'qris_expiry' => 'datetime',
+        'total_price' => 'decimal:2'
     ];
 
     public function items()
@@ -35,6 +31,33 @@ class Transaction extends Model
     public function location()
     {
         return $this->belongsTo(Location::class, 'location_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function latestPayment()
+    {
+        return $this->hasOne(Payment::class)->latest();
+    }
+
+    public function successfulPayment()
+    {
+        return $this->hasOne(Payment::class)->where('status', 'success');
+    }
+
+    // Transaction status methods
+    public function isPaid()
+    {
+        return $this->successfulPayment()->exists();
+    }
+
+    public function getPaymentStatus()
+    {
+        $payment = $this->latestPayment;
+        return $payment ? $payment->status : 'unpaid';
     }
 
     /**

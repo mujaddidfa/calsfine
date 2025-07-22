@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Transaction;
+use App\Models\Payment;
 use App\Services\MidtransService;
 
 class PaymentController extends Controller
@@ -40,18 +41,18 @@ class PaymentController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid order ID'], 400);
         }
 
-        // Find transaction
-        $transaction = Transaction::find($transactionId);
-        if (!$transaction) {
-            Log::error('Transaction not found: ' . $transactionId);
-            return response()->json(['status' => 'error', 'message' => 'Transaction not found'], 404);
+        // Find payment by gateway_order_id
+        $payment = Payment::where('gateway_order_id', $orderId)->first();
+        if (!$payment) {
+            Log::error('Payment not found for order_id: ' . $orderId);
+            return response()->json(['status' => 'error', 'message' => 'Payment not found'], 404);
         }
 
         // Get payment status
         $paymentStatus = $this->midtransService->getPaymentStatus($notification);
         
-        // Update transaction based on payment status
-        $this->updateTransactionStatus($transaction, $notification, $paymentStatus);
+        // Update payment based on status
+        $this->updatePaymentStatus($payment, $notification, $paymentStatus);
 
         return response()->json(['status' => 'success']);
     }
@@ -85,43 +86,51 @@ class PaymentController extends Controller
     }
 
     /**
-     * Update transaction status based on payment result
+     * Update payment status based on payment result
      */
-    private function updateTransactionStatus($transaction, $notification, $paymentStatus)
+    private function updatePaymentStatus($payment, $notification, $paymentStatus)
     {
         $updateData = [
-            'midtrans_transaction_id' => $notification['transaction_id'] ?? null,
-            'midtrans_transaction_status' => $notification['transaction_status'] ?? null,
+            'gateway_transaction_id' => $notification['transaction_id'] ?? null,
             'payment_method' => $notification['payment_type'] ?? null,
+            'gateway_response' => $notification,
         ];
 
         switch ($paymentStatus) {
             case 'success':
-                $updateData['status'] = 'paid';
-                $updateData['payment_date'] = now()->setTimezone('Asia/Jakarta');
-                Log::info('Payment successful for transaction: ' . $transaction->id);
+                $updateData['status'] = 'success';
+                $updateData['paid_at'] = now()->setTimezone('Asia/Jakarta');
+                
+                // Update transaction status to paid
+                $payment->transaction->update(['status' => 'paid']);
+                
+                Log::info('Payment successful for transaction: ' . $payment->transaction_id);
                 break;
                 
             case 'pending':
                 $updateData['status'] = 'pending';
-                Log::info('Payment pending for transaction: ' . $transaction->id);
+                Log::info('Payment pending for transaction: ' . $payment->transaction_id);
                 break;
                 
             case 'failed':
-                $updateData['status'] = 'cancelled';
-                Log::info('Payment failed for transaction: ' . $transaction->id);
+                $updateData['status'] = 'failed';
+                
+                // Update transaction status to cancelled
+                $payment->transaction->update(['status' => 'cancelled']);
+                
+                Log::info('Payment failed for transaction: ' . $payment->transaction_id);
                 break;
                 
             case 'challenge':
-                // Keep as pending until fraud review
-                Log::info('Payment under fraud review for transaction: ' . $transaction->id);
+                $updateData['status'] = 'challenge';
+                Log::info('Payment under fraud review for transaction: ' . $payment->transaction_id);
                 break;
                 
             default:
-                Log::warning('Unknown payment status: ' . $paymentStatus . ' for transaction: ' . $transaction->id);
+                Log::warning('Unknown payment status: ' . $paymentStatus . ' for transaction: ' . $payment->transaction_id);
         }
 
-        $transaction->update($updateData);
+        $payment->update($updateData);
     }
 
     /**
@@ -129,18 +138,21 @@ class PaymentController extends Controller
      */
     public function checkStatus($transactionId)
     {
-        $transaction = Transaction::find($transactionId);
+        $transaction = Transaction::with('latestPayment')->find($transactionId);
         
         if (!$transaction) {
             return response()->json(['status' => 'error', 'message' => 'Transaction not found'], 404);
         }
 
+        $payment = $transaction->latestPayment;
+
         return response()->json([
             'status' => 'success',
             'transaction_id' => $transaction->id,
             'payment_status' => $transaction->status,
-            'midtrans_status' => $transaction->midtrans_transaction_status,
-            'payment_method' => $transaction->payment_method,
+            'payment_gateway_status' => $payment ? $payment->status : 'unpaid',
+            'payment_method' => $payment ? $payment->payment_method : null,
+            'paid_at' => $payment && $payment->paid_at ? $payment->paid_at->toISOString() : null,
         ]);
     }
 }
