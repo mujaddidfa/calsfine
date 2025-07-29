@@ -46,10 +46,7 @@ class PaymentController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Payment not found'], 404);
         }
 
-        Log::info('Payment found:', [
-            'payment_id' => $payment->getKey(), 
-            'transaction_id' => $payment->getAttribute('transaction_id')
-        ]);
+        Log::info('Payment found:', ['payment_id' => $payment->id, 'transaction_id' => $payment->transaction_id]);
 
         // Get payment status
         $paymentStatus = $this->midtransService->getPaymentStatus($notification);
@@ -125,10 +122,7 @@ class PaymentController extends Controller
                 // Update transaction status to paid
                 $payment->transaction->update(['status' => 'paid']);
                 
-                // Update menu stock when payment is successful
-                $payment->transaction->updateMenuStock();
-                
-                Log::info('Payment successful for transaction: ' . $payment->transaction_id . ', stock updated');
+                Log::info('Payment successful for transaction: ' . $payment->transaction_id);
                 break;
                 
             case 'pending':
@@ -142,10 +136,7 @@ class PaymentController extends Controller
                 // Update transaction status to cancelled
                 $payment->transaction->update(['status' => 'cancelled']);
                 
-                // Restore menu stock when payment fails
-                $payment->transaction->restoreMenuStock();
-                
-                Log::info('Payment failed for transaction: ' . $payment->transaction_id . ', stock restored');
+                Log::info('Payment failed for transaction: ' . $payment->transaction_id);
                 break;
                 
             case 'challenge':
@@ -175,8 +166,8 @@ class PaymentController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'transaction_id' => $transaction->getKey(),
-            'payment_status' => $transaction->getAttribute('status'),
+            'transaction_id' => $transaction->id,
+            'payment_status' => $transaction->status,
             'payment_gateway_status' => $payment ? $payment->status : 'unpaid',
             'payment_method' => $payment ? $payment->payment_method : null,
             'paid_at' => $payment && $payment->paid_at ? $payment->paid_at->toISOString() : null,

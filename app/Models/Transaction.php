@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
 class Transaction extends Model
 {
@@ -86,55 +85,5 @@ class Transaction extends Model
                 $transaction->pickup_code = self::generatePickupCode();
             }
         });
-    }
-
-    /**
-     * Update stock for all items in this transaction
-     * Should be called when payment is successful
-     */
-    public function updateMenuStock()
-    {
-        foreach ($this->items as $item) {
-            $menu = $item->menu;
-            if ($menu) {
-                // Reduce stock by the quantity ordered
-                $newStock = $menu->stock - $item->qty;
-                
-                // Ensure stock doesn't go below 0
-                $menu->stock = max(0, $newStock);
-                $menu->save();
-                
-                Log::info("Stock updated for menu: {$menu->name}", [
-                    'menu_id' => $menu->id,
-                    'old_stock' => $menu->stock + $item->qty,
-                    'quantity_sold' => $item->qty,
-                    'new_stock' => $menu->stock,
-                    'transaction_id' => $this->getKey()
-                ]);
-            }
-        }
-    }
-
-    /**
-     * Restore stock for all items in this transaction
-     * Should be called when payment fails or transaction is cancelled
-     */
-    public function restoreMenuStock()
-    {
-        foreach ($this->items as $item) {
-            $menu = $item->menu;
-            if ($menu) {
-                // Add back the stock
-                $menu->stock += $item->qty;
-                $menu->save();
-                
-                Log::info("Stock restored for menu: {$menu->name}", [
-                    'menu_id' => $menu->id,
-                    'quantity_restored' => $item->qty,
-                    'new_stock' => $menu->stock,
-                    'transaction_id' => $this->getKey()
-                ]);
-            }
-        }
     }
 }
