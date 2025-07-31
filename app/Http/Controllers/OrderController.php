@@ -22,11 +22,15 @@ class OrderController extends Controller
             ->with('category')
             ->get();
 
-        // Ambil semua lokasi (hapus filter is_active untuk debugging)
-        $locations = Location::all();
+        // Ambil semua lokasi yang aktif saja
+        $locations = Location::where('is_active', 1)->get();
 
-        // Ambil semua pickup times dengan relasi location
-        $pickupTimes = PickupTime::with('location')->get();
+        // Ambil semua pickup times dengan relasi location yang aktif
+        $pickupTimes = PickupTime::with(['location' => function($query) {
+            $query->where('is_active', 1);
+        }])->whereHas('location', function($query) {
+            $query->where('is_active', 1);
+        })->get();
 
         return view('order', compact('menus', 'locations', 'pickupTimes'));
     }
@@ -40,7 +44,7 @@ class OrderController extends Controller
             'note' => 'nullable|string',
             'pick_up_date' => 'required|date',
             'pickup_time' => 'required|string', // Format HH:MM
-            'location_id' => 'required|exists:locations,id',
+            'location_id' => 'required|exists:locations,id,is_active,1',
             'items' => 'required|array|min:1',
             'items.*.menu_id' => 'required|exists:menus,id',
             'items.*.qty' => 'required|integer|min:1',

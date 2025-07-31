@@ -13,7 +13,7 @@ class LocationController extends Controller
      */
     public function index()
     {
-        $locations = Location::all();
+        $locations = Location::where('is_active', 1)->get();
 
         return response()->json([
             'status' => 'success',
