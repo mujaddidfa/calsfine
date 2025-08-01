@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- QR Code Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
 </head>
 <body class="bg-gray-50 font-['Poppins']">
     
@@ -383,7 +383,7 @@
 
     <script>
         // QR Scanner variables
-        let html5QrCode = null;
+        let html5QrcodeScanner = null;
         let currentScannerMode = 'camera';
         
         // Tab switching function
@@ -410,25 +410,34 @@
         
         // Scanner mode switching
         function showCameraScanner() {
+            console.log('Switching to camera scanner mode');
             currentScannerMode = 'camera';
             
             // Update button appearance
             const cameraToggle = document.getElementById('camera-toggle');
             const manualToggle = document.getElementById('manual-toggle');
             
-            cameraToggle.classList.add('bg-blue-500', 'text-white');
-            cameraToggle.classList.remove('text-gray-700');
-            manualToggle.classList.remove('bg-blue-500', 'text-white');
-            manualToggle.classList.add('text-gray-700');
+            if (cameraToggle && manualToggle) {
+                cameraToggle.classList.add('bg-blue-500', 'text-white');
+                cameraToggle.classList.remove('text-gray-700');
+                manualToggle.classList.remove('bg-blue-500', 'text-white');
+                manualToggle.classList.add('text-gray-700');
+            }
             
             // Show camera scanner, hide manual
-            document.getElementById('camera-scanner').classList.remove('hidden');
-            document.getElementById('manual-scanner').classList.add('hidden');
+            const cameraDiv = document.getElementById('camera-scanner');
+            const manualDiv = document.getElementById('manual-scanner');
             
-            // Auto-start camera
+            if (cameraDiv && manualDiv) {
+                cameraDiv.classList.remove('hidden');
+                manualDiv.classList.add('hidden');
+            }
+            
+            // Auto-start camera with a longer delay
             setTimeout(() => {
+                console.log('About to start QR scanner...');
                 startQrScanner();
-            }, 100);
+            }, 300);
         }
         
         function showManualScanner() {
@@ -448,20 +457,14 @@
             document.getElementById('camera-scanner').classList.add('hidden');
             
             // Stop camera if running
-            try {
-                if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
-                    stopQrScanner();
-                }
-            } catch (err) {
-                console.log('Error checking scanner state:', err);
-            }
+            stopQrScanner();
         }
         
         // QR Scanner functions
         function openQrScanner() {
-            console.log('openQrScanner() called'); // Debug log
+            console.log('openQrScanner() called');
             const modal = document.getElementById('qr-scanner-modal');
-            console.log('Modal element:', modal); // Debug log
+            console.log('Modal element:', modal);
             
             if (!modal) {
                 alert('Error: Modal element not found!');
@@ -473,19 +476,16 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
-            // Reset to camera mode by default
-            showCameraScanner();
+            // Add a small delay to ensure modal is visible before starting camera
+            setTimeout(() => {
+                // Reset to camera mode by default
+                showCameraScanner();
+            }, 200);
         }
         
         function closeQrScanner() {
             // Stop camera if running
-            try {
-                if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
-                    stopQrScanner();
-                }
-            } catch (err) {
-                console.log('Error checking scanner state:', err);
-            }
+            stopQrScanner();
             
             const modal = document.getElementById('qr-scanner-modal');
             // Use both methods to ensure modal hides
@@ -500,52 +500,100 @@
             }
         }
         
-        // Start QR Code scanner with camera
-        async function startQrScanner() {
+        // Start QR Code scanner with camera using Html5QrcodeScanner (Easy Mode)
+        function startQrScanner() {
+            console.log('Starting QR scanner...');
+            
             try {
-                if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("qr-reader");
+                // Clear any existing scanner
+                const readerDiv = document.getElementById("qr-reader");
+                if (!readerDiv) {
+                    console.error('QR reader div not found');
+                    return;
                 }
                 
-                // Get available cameras
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length) {
-                    // Use back camera if available, otherwise use first camera
-                    const cameraId = devices.find(device => 
-                        device.label.toLowerCase().includes('back') || 
-                        device.label.toLowerCase().includes('rear')
-                    )?.id || devices[0].id;
-                    
-                    // Start scanning
-                    await html5QrCode.start(
-                        cameraId,
-                        {
-                            fps: 10,
-                            qrbox: { width: 200, height: 200 }
-                        },
-                        onScanSuccess,
-                        onScanFailure
-                    );
-                    
-                } else {
-                    alert('❌ Tidak ditemukan kamera pada perangkat ini. Gunakan mode manual.');
-                    showManualScanner();
+                readerDiv.innerHTML = '';
+                
+                // Stop existing scanner if running
+                if (html5QrcodeScanner) {
+                    try {
+                        html5QrcodeScanner.clear();
+                    } catch (e) {
+                        console.log('Error clearing previous scanner:', e);
+                    }
+                    html5QrcodeScanner = null;
                 }
+                
+                // Check if Html5QrcodeScanner is available
+                if (typeof Html5QrcodeScanner === 'undefined') {
+                    console.error('Html5QrcodeScanner is not defined');
+                    alert('❌ Library QR Code belum dimuat. Silakan refresh halaman dan coba lagi.');
+                    return;
+                }
+                
+                // Create new scanner instance with more permissive settings
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "qr-reader",
+                    { 
+                        fps: 10, 
+                        qrbox: { width: 200, height: 200 },
+                        // Remove preferredCamera to let it choose automatically
+                        aspectRatio: 1.0,
+                        disableFlip: false,
+                        videoConstraints: {
+                            facingMode: "environment" // This will prefer back camera
+                        }
+                    },
+                    false // verbose
+                );
+                
+                console.log('Html5QrcodeScanner created, starting render...');
+                
+                // Start scanning
+                html5QrcodeScanner.render(
+                    (decodedText, decodedResult) => {
+                        console.log('QR Code scanned successfully:', decodedText);
+                        onScanSuccess(decodedText, decodedResult);
+                    },
+                    (errorMessage) => {
+                        // Only log important errors, not every scan attempt
+                        if (errorMessage.includes("Camera")) {
+                            console.warn('Camera error:', errorMessage);
+                        }
+                        onScanFailure(errorMessage);
+                    }
+                );
+                
+                console.log('QR Scanner started successfully');
+                
             } catch (err) {
                 console.error('Error starting QR scanner:', err);
-                alert('❌ Gagal mengakses kamera. Pastikan browser memiliki izin kamera atau gunakan mode manual.');
+                
+                // More specific error messages
+                if (err.name === 'NotAllowedError') {
+                    alert('❌ Izin kamera ditolak. Silakan:\n1. Klik ikon kamera di address bar\n2. Izinkan akses kamera\n3. Refresh halaman dan coba lagi');
+                } else if (err.name === 'NotFoundError') {
+                    alert('❌ Kamera tidak ditemukan. Pastikan perangkat memiliki kamera yang berfungsi.');
+                } else if (err.name === 'NotSupportedError') {
+                    alert('❌ Browser tidak mendukung akses kamera. Gunakan Chrome, Firefox, atau Safari terbaru.');
+                } else {
+                    alert('❌ Gagal mengakses kamera: ' + err.message + '\n\nGunakan mode manual sebagai alternatif.');
+                }
+                
                 showManualScanner();
             }
         }
         
         // Stop QR Code scanner
         function stopQrScanner() {
-            if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
-                html5QrCode.stop().then(() => {
+            if (html5QrcodeScanner) {
+                try {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
                     console.log('QR Code scanner stopped');
-                }).catch(err => {
+                } catch (err) {
                     console.error('Error stopping scanner:', err);
-                });
+                }
             }
         }
         
@@ -640,11 +688,20 @@
         
         // Allow Enter key to process pickup in manual mode
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Content Loaded'); // Debug log
+            console.log('DOM Content Loaded');
+            
+            // Check if library is loaded
+            setTimeout(() => {
+                if (typeof Html5QrcodeScanner !== 'undefined') {
+                    console.log('✅ Html5QrcodeScanner library loaded successfully');
+                } else {
+                    console.error('❌ Html5QrcodeScanner library failed to load');
+                }
+            }, 1000);
             
             // Check if modal exists
             const modal = document.getElementById('qr-scanner-modal');
-            console.log('Modal on load:', modal); // Debug log
+            console.log('Modal on load:', modal);
             
             const qrInput = document.getElementById('qr-code-input');
             if (qrInput) {
@@ -663,6 +720,24 @@
                     console.log('Test modal opened');
                 } else {
                     console.log('Modal not found in test');
+                }
+            };
+            
+            // Debug function for testing camera access
+            window.testCamera = function() {
+                console.log('Testing camera access...');
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(function(stream) {
+                            console.log('✅ Camera access granted');
+                            // Stop the stream immediately
+                            stream.getTracks().forEach(track => track.stop());
+                        })
+                        .catch(function(err) {
+                            console.error('❌ Camera access denied:', err);
+                        });
+                } else {
+                    console.error('❌ getUserMedia not supported');
                 }
             };
         });
