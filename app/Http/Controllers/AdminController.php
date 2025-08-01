@@ -51,7 +51,6 @@ class AdminController extends Controller
         $recent_orders = Transaction::with(['location'])
             ->whereDate('pick_up_date', $today)
             ->orderBy('pick_up_date', 'asc')
-            ->take(10)
             ->get();
 
         // Get tomorrow orders (pesanan yang dipesan hari ini untuk pickup besok)
@@ -59,7 +58,6 @@ class AdminController extends Controller
             ->whereDate('order_date', $today)
             ->whereDate('pick_up_date', $tomorrow)
             ->orderBy('pick_up_date', 'asc')
-            ->take(15)
             ->get();
 
         return view('admin.dashboard', compact('stats', 'recent_orders', 'tomorrow_orders'));
