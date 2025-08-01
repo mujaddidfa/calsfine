@@ -136,6 +136,12 @@ class PaymentController extends Controller
                 // Update transaction status to cancelled
                 $payment->transaction->update(['status' => 'cancelled']);
                 
+                // Restore stock for cancelled transaction
+                if ($payment->transaction->canRestoreStock()) {
+                    $payment->transaction->restoreStock();
+                    Log::info('Stock restored for cancelled transaction: ' . $payment->transaction_id);
+                }
+                
                 Log::info('Payment failed for transaction: ' . $payment->transaction_id);
                 break;
                 
@@ -172,5 +178,52 @@ class PaymentController extends Controller
             'payment_method' => $payment ? $payment->payment_method : null,
             'paid_at' => $payment && $payment->paid_at ? $payment->paid_at->toISOString() : null,
         ]);
+    }
+
+    /**
+     * Cancel transaction and restore stock
+     */
+    public function cancelTransaction($transactionId)
+    {
+        $transaction = Transaction::with('items.menu')->find($transactionId);
+        
+        if (!$transaction) {
+            return response()->json(['status' => 'error', 'message' => 'Transaction not found'], 404);
+        }
+
+        // Check if transaction can be cancelled
+        if (!in_array($transaction->status, ['pending'])) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Transaction cannot be cancelled. Current status: ' . $transaction->status
+            ], 400);
+        }
+
+        try {
+            // Update transaction status
+            $transaction->update(['status' => 'cancelled']);
+            
+            // Restore stock
+            $transaction->restoreStock();
+            
+            // Update payment status if exists
+            if ($transaction->latestPayment) {
+                $transaction->latestPayment->update(['status' => 'cancelled']);
+            }
+
+            Log::info('Transaction cancelled and stock restored: ' . $transactionId);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaction cancelled and stock restored successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error cancelling transaction: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to cancel transaction'
+            ], 500);
+        }
     }
 }

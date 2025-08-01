@@ -23,6 +23,7 @@ Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payme
 Route::get('/payment/unfinish', [PaymentController::class, 'unfinish'])->name('payment.unfinish');
 Route::get('/payment/error', [PaymentController::class, 'error'])->name('payment.error');
 Route::get('/payment/status/{transactionId}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+Route::post('/payment/cancel/{transactionId}', [PaymentController::class, 'cancelTransaction'])->name('payment.cancel');
 
 // Test endpoint untuk webhook
 Route::post('/payment/test-webhook', function() {

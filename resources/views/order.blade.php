@@ -83,13 +83,28 @@
                     <p class="text-xs text-gray-600 mb-2">{{ $menu->description }}</p>
                     <div class="flex justify-between items-center mb-2">
                         <p class="text-sm font-semibold text-primary-500">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
-                        <span class="text-xs text-gray-500">Stok: {{ $menu->stock }}</span>
+                        <span class="text-xs {{ $menu->stock > 0 ? 'text-gray-500' : 'text-red-500' }}">
+                            Stok: {{ $menu->stock }}
+                            @if($menu->stock <= 0)
+                                (Habis)
+                            @elseif($menu->stock <= 5)
+                                (Terbatas)
+                            @endif
+                        </span>
                     </div>
-                    <button 
-                        onclick="addToCart({{ $menu->id }}, '{{ $menu->name }}', {{ $menu->price }}, {{ $menu->stock }})"
-                        class="w-full text-sm border border-primary-500 text-primary-500 py-1 rounded hover:bg-primary-500 hover:text-white transition">
-                        Tambah
-                    </button>
+                    @if($menu->stock > 0)
+                        <button 
+                            onclick="addToCart({{ $menu->id }}, '{{ $menu->name }}', {{ $menu->price }}, {{ $menu->stock }})"
+                            class="w-full text-sm border border-primary-500 text-primary-500 py-1 rounded hover:bg-primary-500 hover:text-white transition">
+                            Tambah
+                        </button>
+                    @else
+                        <button 
+                            disabled
+                            class="w-full text-sm border border-gray-300 text-gray-400 py-1 rounded cursor-not-allowed">
+                            Stok Habis
+                        </button>
+                    @endif
                 </div>
             </div>
             @empty

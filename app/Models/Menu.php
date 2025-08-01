@@ -38,4 +38,34 @@ class Menu extends Model
     {
         return $this->stock > 0;
     }
+
+    /**
+     * Reduce stock by given quantity
+     */
+    public function reduceStock($quantity)
+    {
+        if ($this->stock < $quantity) {
+            return false;
+        }
+        
+        $this->decrement('stock', $quantity);
+        return true;
+    }
+
+    /**
+     * Increase stock by given quantity
+     */
+    public function increaseStock($quantity)
+    {
+        $this->increment('stock', $quantity);
+        return true;
+    }
+
+    /**
+     * Check if menu has sufficient stock for given quantity
+     */
+    public function hasSufficientStock($quantity)
+    {
+        return $this->stock >= $quantity;
+    }
 }

@@ -61,6 +61,28 @@ class Transaction extends Model
     }
 
     /**
+     * Restore stock for all items in this transaction
+     */
+    public function restoreStock()
+    {
+        foreach ($this->items as $item) {
+            $menu = $item->menu;
+            if ($menu) {
+                $menu->increaseStock($item->qty);
+                \Illuminate\Support\Facades\Log::info("Restored stock for menu {$menu->name}: +{$item->qty}");
+            }
+        }
+    }
+
+    /**
+     * Check if transaction can be cancelled (stock can be restored)
+     */
+    public function canRestoreStock()
+    {
+        return in_array($this->status, ['pending', 'cancelled', 'failed']);
+    }
+
+    /**
      * Generate unique pickup code
      */
     public static function generatePickupCode()

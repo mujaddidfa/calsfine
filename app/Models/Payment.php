@@ -56,4 +56,40 @@ class Payment extends Model
     {
         return $this->isPending() && !$this->isExpired();
     }
+
+    /**
+     * Mark payment as expired and restore stock
+     */
+    public function markAsExpired()
+    {
+        if ($this->status !== 'pending') {
+            return false;
+        }
+
+        $this->update(['status' => 'expired']);
+        
+        // Update transaction status and restore stock
+        $transaction = $this->transaction;
+        if ($transaction && $transaction->status === 'pending') {
+            $transaction->update(['status' => 'cancelled']);
+            
+            if ($transaction->canRestoreStock()) {
+                $transaction->restoreStock();
+                \Illuminate\Support\Facades\Log::info('Stock restored for expired payment transaction: ' . $transaction->id);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get expired pending payments
+     */
+    public static function getExpiredPendingPayments()
+    {
+        return self::where('status', 'pending')
+                   ->where('expired_at', '<', now())
+                   ->with('transaction.items.menu')
+                   ->get();
+    }
 }

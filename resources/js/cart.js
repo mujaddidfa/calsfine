@@ -194,6 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.showPaymentPendingModal = showPaymentPendingModal;
     window.closePaymentPendingModal = closePaymentPendingModal;
     window.retryPayment = retryPayment;
+    window.cancelOrder = cancelOrder;
 
     // Initialize cart display
     updateCartDisplay();
@@ -609,7 +610,8 @@ function showOrderSuccessModal(transactionId, qrCodeDataUri, pickupCode) {
                                     <p class="text-sm text-blue-700 mt-1">
                                         • Simpan QR Code atau Pickup Code dengan aman<br>
                                         • QR Code dapat di-download untuk akses offline<br>
-                                        • Pickup Code dapat disalin untuk kemudahan
+                                        • Pickup Code dapat disalin untuk kemudahan<br>
+                                        • <strong>Stok menu sudah dikurangi untuk pesanan ini</strong>
                                     </p>
                                 </div>
                             </div>
@@ -895,13 +897,18 @@ function showPaymentPendingModal(transactionId) {
                             <p class="text-sm text-yellow-700">
                                 <strong>Status:</strong> Menunggu Pembayaran<br><br>
                                 Pesanan Anda sudah dibuat namun pembayaran belum selesai. 
-                                Silakan selesaikan pembayaran untuk mengkonfirmasi pesanan.
+                                Silakan selesaikan pembayaran untuk mengkonfirmasi pesanan.<br><br>
+                                <strong>Catatan:</strong> Stok menu sudah dikurangi untuk pesanan ini. 
+                                Jika Anda membatalkan pesanan, stok akan dikembalikan.
                             </p>
                         </div>
                         
                         <div class="space-y-3">
                             <button onclick="retryPayment()" class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition font-semibold">
                                 Lanjutkan Pembayaran
+                            </button>
+                            <button onclick="cancelOrder()" class="w-full bg-red-500 text-white py-3 px-4 rounded-lg hover:bg-red-600 transition font-semibold">
+                                Batalkan Pesanan
                             </button>
                             <button onclick="closePaymentPendingModal()" class="w-full bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition font-medium">
                                 Nanti Saja
@@ -956,4 +963,50 @@ function retryPayment() {
     alert(
         "Fitur retry payment akan segera tersedia. Silakan hubungi admin untuk melanjutkan pembayaran."
     );
+}
+
+// Function to cancel order
+async function cancelOrder() {
+    const transactionId = document.getElementById(
+        "pending-order-number"
+    ).textContent;
+
+    if (!transactionId) return;
+
+    // Show confirmation dialog
+    if (
+        !confirm(
+            "Apakah Anda yakin ingin membatalkan pesanan ini? Stok menu akan dikembalikan."
+        )
+    ) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/payment/cancel/${transactionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute("content"),
+            },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Pesanan berhasil dibatalkan. Stok menu telah dikembalikan.");
+            closePaymentPendingModal();
+            // Refresh the page to update stock status
+            window.location.reload();
+        } else {
+            alert(
+                data.message || "Gagal membatalkan pesanan. Silakan coba lagi."
+            );
+        }
+    } catch (error) {
+        console.error("Error canceling order:", error);
+        alert("Terjadi kesalahan saat membatalkan pesanan. Silakan coba lagi.");
+    }
 }

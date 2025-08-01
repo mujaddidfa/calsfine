@@ -17,10 +17,11 @@ class OrderController extends Controller
 {
     public function index()
     {
-        // Ambil semua menu yang aktif dengan kategorinya
+        // Ambil semua menu yang aktif dengan kategorinya, reload untuk mendapat stok terbaru
         $menus = Menu::where('is_active', 1)
             ->with('category')
-            ->get();
+            ->get()
+            ->fresh(); // Ensure fresh data from database
 
         // Ambil semua lokasi yang aktif saja
         $locations = Location::where('is_active', 1)->get();
@@ -54,9 +55,41 @@ class OrderController extends Controller
         try {
             $total = 0;
             $items = [];
+            $stockReductions = []; // Track stock reductions for rollback
 
+            // First, check stock availability for all items
             foreach ($validated['items'] as $item) {
                 $menu = Menu::findOrFail($item['menu_id']);
+                
+                if (!$menu->hasSufficientStock($item['qty'])) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Stok tidak mencukupi untuk menu '{$menu->name}'. Stok tersedia: {$menu->stock}, diminta: {$item['qty']}"
+                    ], 400);
+                }
+            }
+
+            // If all stock checks pass, proceed with stock reduction and calculations
+            foreach ($validated['items'] as $item) {
+                $menu = Menu::findOrFail($item['menu_id']);
+                
+                // Reduce stock
+                if (!$menu->reduceStock($item['qty'])) {
+                    // This shouldn't happen since we checked above, but just in case
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Gagal mengurangi stok untuk menu '{$menu->name}'"
+                    ], 500);
+                }
+                
+                // Track stock reduction for potential rollback
+                $stockReductions[] = [
+                    'menu_id' => $menu->id,
+                    'quantity' => $item['qty']
+                ];
+                
                 $subtotal = $menu->price * $item['qty'];
                 $total += $subtotal;
 
@@ -98,6 +131,9 @@ class OrderController extends Controller
             $paymentResult = $midtransService->createTransaction($transaction);
 
             if (!$paymentResult['success']) {
+                // Rollback stock reductions before rolling back transaction
+                $this->rollbackStockReductions($stockReductions);
+                
                 DB::rollBack();
                 return response()->json([
                     'status' => 'error',
@@ -132,12 +168,35 @@ class OrderController extends Controller
                 'client_key' => config('services.midtrans.client_key')
             ]);
         } catch (\Exception $e) {
+            // Rollback stock reductions if any error occurs
+            if (isset($stockReductions)) {
+                $this->rollbackStockReductions($stockReductions);
+            }
+            
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat memproses pesanan',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Rollback stock reductions when transaction fails
+     */
+    private function rollbackStockReductions($stockReductions)
+    {
+        foreach ($stockReductions as $reduction) {
+            try {
+                $menu = Menu::find($reduction['menu_id']);
+                if ($menu) {
+                    $menu->increaseStock($reduction['quantity']);
+                }
+            } catch (\Exception $e) {
+                // Log error but continue with other rollbacks
+                \Illuminate\Support\Facades\Log::error('Failed to rollback stock for menu ' . $reduction['menu_id'] . ': ' . $e->getMessage());
+            }
         }
     }
 }
