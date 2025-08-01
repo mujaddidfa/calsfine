@@ -188,6 +188,9 @@ document.addEventListener("DOMContentLoaded", function () {
     window.submitOrder = submitOrder;
     window.showOrderSuccessModal = showOrderSuccessModal;
     window.closeOrderSuccessModal = closeOrderSuccessModal;
+    window.downloadQRCode = downloadQRCode;
+    window.showDownloadSuccess = showDownloadSuccess;
+    window.copyPickupCode = copyPickupCode;
     window.showPaymentPendingModal = showPaymentPendingModal;
     window.closePaymentPendingModal = closePaymentPendingModal;
     window.retryPayment = retryPayment;
@@ -574,12 +577,41 @@ function showOrderSuccessModal(transactionId, qrCodeDataUri, pickupCode) {
                     <div class="p-6 text-center">
                         <h3 class="text-lg font-semibold mb-2">Nomor Pesanan</h3>
                         <p class="text-2xl font-bold text-primary-600 mb-2">#<span id="order-number"></span></p>
-                        <p class="text-lg font-semibold text-green-600 mb-4">Pickup Code: <span id="pickup-code" class="font-mono text-xl"></span></p>
+                        <div class="flex items-center justify-center mb-4">
+                            <p class="text-lg font-semibold text-green-600 mr-2">Pickup Code: <span id="pickup-code" class="font-mono text-xl"></span></p>
+                            <button onclick="copyPickupCode()" class="ml-2 p-1 text-gray-500 hover:text-gray-700 rounded" title="Copy Pickup Code">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                            </button>
+                        </div>
                         
                         <div class="mb-4">
                             <p class="text-gray-600 mb-4">Simpan QR Code ini untuk pickup pesanan Anda:</p>
                             <div class="flex justify-center mb-4">
                                 <img id="qr-code-image" src="" alt="QR Code Pickup" class="max-w-[200px] border border-gray-200 rounded">
+                            </div>
+                            <button onclick="downloadQRCode()" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition font-medium mb-3 flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Download QR Code
+                            </button>
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-800">Penting!</p>
+                                    <p class="text-sm text-blue-700 mt-1">
+                                        • Simpan QR Code atau Pickup Code dengan aman<br>
+                                        • QR Code dapat di-download untuk akses offline<br>
+                                        • Pickup Code dapat disalin untuk kemudahan
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         
@@ -588,7 +620,8 @@ function showOrderSuccessModal(transactionId, qrCodeDataUri, pickupCode) {
                                 <strong>Cara Pickup:</strong><br>
                                 1. Datang ke lokasi sesuai waktu yang dipilih<br>
                                 2. Tunjukkan QR Code ini ke admin atau berikan Pickup Code<br>
-                                3. Pesanan akan dikonfirmasi sebagai selesai
+                                3. Pesanan akan dikonfirmasi sebagai selesai<br><br>
+                                <strong>💡 Tips:</strong> Download QR Code untuk memudahkan akses offline
                             </p>
                         </div>
                         
@@ -620,6 +653,217 @@ function closeOrderSuccessModal() {
         modal.classList.add("hidden");
         modal.classList.remove("flex");
     }
+}
+
+// Function to download QR Code
+function downloadQRCode() {
+    const qrCodeImage = document.getElementById("qr-code-image");
+    const pickupCode = document.getElementById("pickup-code").textContent;
+    const orderNumber = document.getElementById("order-number").textContent;
+    const downloadBtn = document.querySelector(
+        'button[onclick="downloadQRCode()"]'
+    );
+
+    if (!qrCodeImage || !qrCodeImage.src) {
+        alert("QR Code tidak tersedia untuk didownload");
+        return;
+    }
+
+    // Show loading state
+    const originalBtnContent = downloadBtn.innerHTML;
+    downloadBtn.innerHTML = `
+        <svg class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Mendownload...
+    `;
+    downloadBtn.disabled = true;
+
+    try {
+        // Create a canvas element
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Create a new image from the QR code
+        const img = new Image();
+        img.crossOrigin = "anonymous"; // Handle CORS if needed
+
+        img.onload = function () {
+            // Set canvas size to match image
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Draw the image on canvas
+            ctx.drawImage(img, 0, 0);
+
+            // Convert canvas to blob and download
+            canvas.toBlob(function (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `QR-Pickup-Order-${orderNumber}-${pickupCode}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+                // Show success feedback
+                showDownloadSuccess(downloadBtn, originalBtnContent);
+            }, "image/png");
+        };
+
+        img.onerror = function () {
+            // Fallback: try direct download using data URI
+            const link = document.createElement("a");
+            link.href = qrCodeImage.src;
+            link.download = `QR-Pickup-Order-${orderNumber}-${pickupCode}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success feedback
+            showDownloadSuccess(downloadBtn, originalBtnContent);
+        };
+
+        img.src = qrCodeImage.src;
+    } catch (error) {
+        console.error("Error downloading QR Code:", error);
+
+        // Reset button state
+        downloadBtn.innerHTML = originalBtnContent;
+        downloadBtn.disabled = false;
+
+        // Fallback method: open in new tab
+        try {
+            const link = document.createElement("a");
+            link.href = qrCodeImage.src;
+            link.download = `QR-Pickup-Order-${orderNumber}-${pickupCode}.png`;
+            link.target = "_blank";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show success feedback
+            showDownloadSuccess(downloadBtn, originalBtnContent);
+        } catch (fallbackError) {
+            console.error("Fallback download also failed:", fallbackError);
+            alert(
+                "Tidak dapat mendownload QR Code. Silakan screenshot gambar QR Code secara manual."
+            );
+        }
+    }
+}
+
+// Helper function to show download success feedback
+function showDownloadSuccess(button, originalContent) {
+    // Show success state
+    button.innerHTML = `
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        Download Berhasil!
+    `;
+    button.classList.remove("bg-blue-500", "hover:bg-blue-600");
+    button.classList.add("bg-green-500", "hover:bg-green-600");
+
+    // Reset to original state after 3 seconds
+    setTimeout(() => {
+        button.innerHTML = originalContent;
+        button.disabled = false;
+        button.classList.remove("bg-green-500", "hover:bg-green-600");
+        button.classList.add("bg-blue-500", "hover:bg-blue-600");
+    }, 3000);
+}
+
+// Function to copy pickup code to clipboard
+function copyPickupCode() {
+    const pickupCodeElement = document.getElementById("pickup-code");
+    const pickupCode = pickupCodeElement.textContent;
+
+    if (!pickupCode) {
+        alert("Pickup code tidak tersedia");
+        return;
+    }
+
+    // Try to use the Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+            .writeText(pickupCode)
+            .then(function () {
+                showCopySuccess();
+            })
+            .catch(function (err) {
+                console.error("Failed to copy using Clipboard API: ", err);
+                fallbackCopyTextToClipboard(pickupCode);
+            });
+    } else {
+        // Fallback for older browsers
+        fallbackCopyTextToClipboard(pickupCode);
+    }
+}
+
+// Fallback copy function for older browsers
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        const successful = document.execCommand("copy");
+        if (successful) {
+            showCopySuccess();
+        } else {
+            alert(
+                "Tidak dapat menyalin pickup code. Silakan salin secara manual: " +
+                    text
+            );
+        }
+    } catch (err) {
+        console.error("Fallback: Oops, unable to copy", err);
+        alert(
+            "Tidak dapat menyalin pickup code. Silakan salin secara manual: " +
+                text
+        );
+    }
+
+    document.body.removeChild(textArea);
+}
+
+// Function to show copy success feedback
+function showCopySuccess() {
+    const copyButton = document.querySelector(
+        'button[onclick="copyPickupCode()"]'
+    );
+    const originalColor = copyButton.className;
+
+    // Show success feedback
+    copyButton.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+    `;
+    copyButton.className =
+        "ml-2 p-1 text-green-500 hover:text-green-700 rounded";
+    copyButton.title = "Pickup Code disalin!";
+
+    // Reset after 2 seconds
+    setTimeout(() => {
+        copyButton.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+        `;
+        copyButton.className = originalColor;
+        copyButton.title = "Copy Pickup Code";
+    }, 2000);
 }
 
 // Function to show payment pending modal
