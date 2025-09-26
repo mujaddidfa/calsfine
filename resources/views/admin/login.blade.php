@@ -6,6 +6,7 @@
     <title>Admin Login - CalsFine</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ asset('icon.png') }}" type="image/png">
 </head>
 <body class="bg-gradient-to-br from-primary-50 to-primary-100 min-h-screen flex items-center justify-center font-['Poppins']">
     
