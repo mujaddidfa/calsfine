@@ -277,7 +277,7 @@
         <img src="{{ asset('images/logo.png') }}" alt="Calsfine Logo" class="h-10">
         <div class="text-sm text-gray-800 space-y-2">
           <p><strong>Email</strong><br>calsfinebyami@gmail.com</p>
-          <p><strong>Phone Number</strong><br>0812-8747-8793</p>
+          <p><strong>Phone Number</strong><br>0878-2654-0989</p>
         </div>
       </div>
 
